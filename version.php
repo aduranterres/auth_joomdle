@@ -24,7 +24,7 @@
 
 
 $plugin->version  = 2008080294;
-$plugin->requires = 2010112400;
+$plugin->requires = 2018120300;
 $plugin->maturity = MATURITY_STABLE;
 $plugin->release = "1.2.2";
 $plugin->component = 'auth_joomdle';
