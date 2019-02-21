@@ -1962,6 +1962,7 @@ class auth_plugin_joomdle extends auth_plugin_manual {
                 $sums2[$i]->finalgrade = $formatted_grade;
 
                 $rdo[$i]['itemname'] = $sum->itemname;
+                $rdo[$i]['timemodified'] = $sum->timemodified;
                 $rdo[$i]['finalgrade'] = $formatted_grade;
 
                 $i++;
@@ -5219,8 +5220,7 @@ class auth_plugin_joomdle extends auth_plugin_manual {
             else $complete = 2;
             $e['complete'] = $complete;
 
-            $data[$i] = $e;
-            $i++;
+            $data[] = $e;
         }
 
         return $data;
