@@ -982,5 +982,12 @@ $functions = array(
         'description' => 'Get mentees certificates',
         'type'        => 'read',
     ),
+    'joomdle_get_moodle_version' => array(
+        'classname'   => 'joomdle_helpers_external',
+        'methodname'  => 'get_moodle_version',
+        'classpath'   => 'auth/joomdle/helpers/externallib.php',
+        'description' => 'Get Moodle version',
+        'type'        => 'read',
+    ),
 
 );

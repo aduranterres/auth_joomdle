@@ -84,10 +84,10 @@ if (($user->auth == 'joomdle') || (!$user)) {
 
                 // Call user_authenticated_hook.
                 $authsenabled = get_enabled_auth_plugins();
-				foreach ($authsenabled as $hau) {
-					$hauth = get_auth_plugin($hau);
-					$hauth->user_authenticated_hook($user, $username, "");
-				}
+                foreach ($authsenabled as $hau) {
+                    $hauth = get_auth_plugin($hau);
+                    $hauth->user_authenticated_hook($user, $username, "");
+                }
             } // Logged.
         }
     } // Username != guest.

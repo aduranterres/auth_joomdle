@@ -24,7 +24,7 @@ defined('MOODLE_INTERNAL') || die();
 
 function joomdle_get_connection_methods () {
 
-	$cms = array ( 'fgc' => 'file_get_contents', 'curl' => 'cURL' );
+    $cms = array ( 'fgc' => 'file_get_contents', 'curl' => 'cURL' );
 
     return $cms;
 }

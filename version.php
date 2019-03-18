@@ -23,8 +23,8 @@
  */
 
 
-$plugin->version  = 2008080295;
+$plugin->version  = 2008080297;
 $plugin->requires = 2018120300;
 $plugin->maturity = MATURITY_STABLE;
-$plugin->release = "1.2.3";
+$plugin->release = "1.2.4";
 $plugin->component = 'auth_joomdle';

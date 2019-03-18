@@ -511,6 +511,12 @@ class auth_plugin_joomdle extends auth_plugin_manual {
         return $system;
     }
 
+    public function get_moodle_version () {
+        global $CFG;
+
+        return (int) $CFG->version;
+    }
+
     public function get_paypal_config () {
         global $CFG;
 
@@ -4416,7 +4422,7 @@ class auth_plugin_joomdle extends auth_plugin_manual {
     public function user_custom_fields () {
         global $DB, $CFG;
 
-        $query = "SELECT id, name
+        $query = "SELECT id, name, shortname
                     FROM {$CFG->prefix}user_info_field";
 
         $records = $DB->get_records_sql($query);
@@ -4425,6 +4431,7 @@ class auth_plugin_joomdle extends auth_plugin_manual {
         foreach ($records as $field) {
             $custom_fields[$i]['id'] = $field->id;
             $custom_fields[$i]['name'] = $field->name;
+            $custom_fields[$i]['shortname'] = $field->shortname;
             $i++;
         }
 
@@ -5397,7 +5404,7 @@ class auth_plugin_joomdle extends auth_plugin_manual {
                             continue;
 
                         $resource['available'] = 0;
-						$cm2 = $modinfo->get_cm ($mod->id);
+                        $cm2 = $modinfo->get_cm ($mod->id);
                         $resource['completion_info'] = $cm2->availableinfo;
                     }
                     else
@@ -5626,7 +5633,7 @@ class auth_plugin_joomdle extends auth_plugin_manual {
         return $c;
     }
 
-	public function get_mentees_certificates ($username, $type) {
+    public function get_mentees_certificates ($username, $type) {
         global $CFG, $DB;
 
         $mentees = $this->get_mentees ($username);
@@ -5640,19 +5647,19 @@ class auth_plugin_joomdle extends auth_plugin_manual {
         }
 
         return $this->get_users_certificates ($users, $type);
-	}
+    }
 
-	public function get_users_certificates ($users, $type = 'normal') {
+    public function get_users_certificates ($users, $type = 'normal') {
         global $CFG, $DB;
 
-		$certs = array ();
-		foreach ($users as $user) {
-			$c = $this->my_certificates ($user['username'], $type);
-			$user['certificates'] = $c;
-			$certs[] = $user;
-		}
-		return $certs;
-	}
+        $certs = array ();
+        foreach ($users as $user) {
+            $c = $this->my_certificates ($user['username'], $type);
+            $user['certificates'] = $c;
+            $certs[] = $user;
+        }
+        return $certs;
+    }
 
 
     public function get_page ($id) {
@@ -6546,7 +6553,7 @@ class auth_plugin_joomdle extends auth_plugin_manual {
         $redirect_url = get_config ('auth_joomdle', 'joomla_url').
             '/index.php?option=com_joomdle&view=joomdle&task=login&data='.$login_data;
         if (property_exists ($SESSION, 'wantsurl'))
-                $redirect_url .= '&wantsurl='. urlencode ($SESSION->wantsurl);
+                $redirect_url .= '&wantsurl='. base64_encode ($SESSION->wantsurl);
 
         redirect($redirect_url);
     }

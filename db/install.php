@@ -23,15 +23,21 @@
 function xmldb_auth_joomdle_install() {
     global $CFG, $DB;
 
+    /*
     $joomdle_config = new joomdle_moodle_config ();
     $joomdle_config->enable_web_services ();
     $joomdle_config->enable_xmlrpc ();
-    $joomdle_config->create_user ();
-    $joomdle_config->add_user_capability ();
-    $joomdle_config->create_webservice ();
-    $joomdle_config->add_functions ();
-    $joomdle_config->add_user_to_service ();
-    $joomdle_config->create_token ();
+
+    if ($CFG->version >= 2018051700)
+    {
+        $joomdle_config->create_user ();
+        $joomdle_config->add_user_capability ();
+        $joomdle_config->create_webservice ();
+        $joomdle_config->add_functions ();
+        $joomdle_config->add_user_to_service ();
+        $joomdle_config->create_token ();
+    }
+    */
 }
 
 class joomdle_moodle_config {

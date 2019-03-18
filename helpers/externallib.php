@@ -1834,6 +1834,7 @@ class joomdle_helpers_external extends external_api {
                 array(
                   'id' => new external_value(PARAM_INT, 'field id'),
                   'name' => new external_value(PARAM_TEXT, 'field name'),
+                  'shortname' => new external_value(PARAM_TEXT, 'field short name'),
                 )
             )
         );
@@ -4989,8 +4990,8 @@ class joomdle_helpers_external extends external_api {
                   'certificates' => new external_multiple_structure(
                            new external_single_structure(
                               array(
-								'name' => new external_value(PARAM_TEXT, 'name'),
-								'id' => new external_value(PARAM_INT, 'id')
+                                'name' => new external_value(PARAM_TEXT, 'name'),
+                                'id' => new external_value(PARAM_INT, 'id')
                               )
                            )
                         )
@@ -5011,5 +5012,27 @@ class joomdle_helpers_external extends external_api {
         return $return;
     }
 
+    /* get_moodle_version */
+    public static function get_moodle_version_parameters() {
+        return new external_function_parameters(
+                        array(
+                  )
+            );
+    }
+
+    public static function get_moodle_version_returns() {
+        return new  external_value(PARAM_INT, 'Moodle version');
+    }
+
+    public static function get_moodle_version($search) {
+        global $CFG, $DB;
+
+        $params = self::validate_parameters(self::get_moodle_version_parameters(), array());
+
+        $auth = new  auth_plugin_joomdle ();
+        $return = $auth->get_moodle_version ();
+
+        return $return;
+    }
 
 }

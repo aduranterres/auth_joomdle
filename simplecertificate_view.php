@@ -48,46 +48,46 @@ $auth = new auth_plugin_joomdle();
 $logged = $auth->call_method ("confirmJoomlaSession", $username, $token);
 
 if (!$logged)
-	    return;
+    return;
 
 $USER = get_complete_user_data('username', $username);
 complete_user_login($USER);
 
 
 if (!$cm = get_coursemodule_from_id( 'simplecertificate', $id)) {
-	print_error('Course Module ID was incorrect');
+    print_error('Course Module ID was incorrect');
 }
 
 if (!$course = $DB->get_record('course', array('id' => $cm->course))) {
-	print_error('course is misconfigured');
+    print_error('course is misconfigured');
 }
 
 if (!$certificate = $DB->get_record('simplecertificate', array('id' => $cm->instance))) {
-	print_error('course module is incorrect');
+    print_error('course module is incorrect');
 }
 
 $context = context_module::instance ($cm->id);
 $url = new moodle_url('/mod/simplecertificate/view.php', array (
-		'id' => $cm->id,
-		'tab' => $tab,
-		'page' => $page,
-		'perpage' => $perpage,
+        'id' => $cm->id,
+        'tab' => $tab,
+        'page' => $page,
+        'perpage' => $perpage,
 ));
 
 if ($type) {
-	$url->param('type', $type);
+    $url->param('type', $type);
 }
 
 if ($orderby) {
-	$url->param ('orderby', $orderby);
+    $url->param ('orderby', $orderby);
 }
 
 if ($action) {
-	$url->param ('action', $action);
+    $url->param ('action', $action);
 }
 
 if ($issuelist) {
-	$url->param ('issuelist', $issuelist);
+    $url->param ('issuelist', $issuelist);
 }
 
 // Initialize $PAGE, compute blocks
@@ -97,8 +97,6 @@ $PAGE->set_cm($cm);
 
 require_capability('mod/simplecertificate:view', $context);
 $canmanage = has_capability('mod/simplecertificate:manage', $context);
-
-
 
 // log update
 $simplecertificate = new simplecertificate($context, $cm, $course);
@@ -111,15 +109,15 @@ $PAGE->set_title(format_string($certificate->name));
 $PAGE->set_heading(format_string($course->fullname));
 
 switch ($tab) {
-	case $simplecertificate::ISSUED_CERTIFCADES_VIEW :
-		$simplecertificate->view_issued_certificates($url);
-	break;
-	
-	case $simplecertificate::BULK_ISSUE_CERTIFCADES_VIEW :
-		$simplecertificate->view_bulk_certificates($url, $selectedusers);
-	break;
-	
-	default :
-		$simplecertificate->view_default($url, $canmanage);
-	break;
+    case $simplecertificate::ISSUED_CERTIFCADES_VIEW :
+        $simplecertificate->view_issued_certificates($url);
+    break;
+    
+    case $simplecertificate::BULK_ISSUE_CERTIFCADES_VIEW :
+        $simplecertificate->view_bulk_certificates($url, $selectedusers);
+    break;
+    
+    default :
+        $simplecertificate->view_default($url, $canmanage);
+    break;
 }
