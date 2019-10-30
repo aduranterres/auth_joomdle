@@ -52,6 +52,10 @@ if ($ADMIN->fulltree) {
         get_string('auth_joomla_redirectless_sso', 'auth_joomdle'),
         get_string('auth_joomla_redirectless_sso_description', 'auth_joomdle'), 0));
 
+    $settings->add(new admin_setting_configcheckbox('auth_joomdle/single_log_out',
+        get_string('auth_joomla_single_log_out', 'auth_joomdle'),
+        get_string('auth_joomla_single_log_out_description', 'auth_joomdle'), 1));
+
     $settings->add(new admin_setting_configcheckbox('auth_joomdle/logout_redirect_to_joomla',
         get_string('auth_joomla_logout_redirect_to_joomla', 'auth_joomdle'),
         get_string('auth_joomla_logout_redirect_to_joomla_description', 'auth_joomdle'), 0));

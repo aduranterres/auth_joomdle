@@ -745,6 +745,7 @@ class joomdle_helpers_external extends external_api {
                             'phrase' => new external_value(PARAM_TEXT, 'search type'),
                             'ordering' => new external_value(PARAM_TEXT, 'order'),
                             'limit' => new external_value(PARAM_TEXT, 'limit'),
+                            'lang' => new external_value(PARAM_TEXT, 'lang'),
                         )
         );
     }
@@ -768,14 +769,14 @@ class joomdle_helpers_external extends external_api {
         );
     }
 
-    public static function search_courses($text, $phrase, $ordering, $limit) {
+    public static function search_courses($text, $phrase, $ordering, $limit, $lang) {
         global $CFG, $DB;
 
         $params = self::validate_parameters(self::search_courses_parameters(),
-                array('text' => $text, 'phrase' => $phrase, 'ordering' => $ordering, 'limit' => $limit));
+                array('text' => $text, 'phrase' => $phrase, 'ordering' => $ordering, 'limit' => $limit, 'lang' => $lang));
 
         $auth = new  auth_plugin_joomdle ();
-        $return = $auth->search_courses ($text, $phrase, $ordering, $limit);
+        $return = $auth->search_courses ($text, $phrase, $ordering, $limit, $lang);
 
         return $return;
     }
@@ -789,6 +790,7 @@ class joomdle_helpers_external extends external_api {
                             'phrase' => new external_value(PARAM_TEXT, 'search type'),
                             'ordering' => new external_value(PARAM_TEXT, 'order'),
                             'limit' => new external_value(PARAM_TEXT, 'limit'),
+                            'lang' => new external_value(PARAM_TEXT, 'lang'),
                         )
         );
     }
@@ -804,14 +806,14 @@ class joomdle_helpers_external extends external_api {
             )
             );
     }
-    public static function search_categories($text, $phrase, $ordering, $limit) {
+    public static function search_categories($text, $phrase, $ordering, $limit, $lang) {
         global $CFG, $DB;
 
         $params = self::validate_parameters(self::search_categories_parameters(),
-                array('text' => $text, 'phrase' => $phrase, 'ordering' => $ordering, 'limit' => $limit));
+                array('text' => $text, 'phrase' => $phrase, 'ordering' => $ordering, 'limit' => $limit, 'lang' => $lang));
 
         $auth = new  auth_plugin_joomdle ();
-        $return = $auth->search_categories ($text, $phrase, $ordering, $limit);
+        $return = $auth->search_categories ($text, $phrase, $ordering, $limit, $lang);
 
         return $return;
     }
@@ -824,6 +826,7 @@ class joomdle_helpers_external extends external_api {
                             'phrase' => new external_value(PARAM_TEXT, 'search type'),
                             'ordering' => new external_value(PARAM_TEXT, 'order'),
                             'limit' => new external_value(PARAM_TEXT, 'limit'),
+                            'lang' => new external_value(PARAM_TEXT, 'lang'),
                         )
         );
     }
@@ -839,18 +842,19 @@ class joomdle_helpers_external extends external_api {
                   'summary' => new external_value(PARAM_RAW, 'summary'),
                   'cat_id' => new external_value(PARAM_INT, 'category id'),
                   'cat_name' => new external_value(PARAM_TEXT, 'category name'),
+                  'sec_name' => new external_value(PARAM_TEXT, 'section name'),
                )
             )
-            );
+        );
     }
-    public static function search_topics($text, $phrase, $ordering, $limit) {
+    public static function search_topics($text, $phrase, $ordering, $limit, $lang) {
         global $CFG, $DB;
 
         $params = self::validate_parameters(self::search_topics_parameters(),
-                array('text' => $text, 'phrase' => $phrase, 'ordering' => $ordering, 'limit' => $limit));
+                array('text' => $text, 'phrase' => $phrase, 'ordering' => $ordering, 'limit' => $limit, 'lang' => $lang));
 
         $auth = new  auth_plugin_joomdle ();
-        $return = $auth->search_topics ($text, $phrase, $ordering, $limit);
+        $return = $auth->search_topics ($text, $phrase, $ordering, $limit, $lang);
 
         return $return;
     }
@@ -4036,6 +4040,7 @@ class joomdle_helpers_external extends external_api {
                 new external_single_structure(
                     array(
                         'email' => new external_value(PARAM_TEXT, 'email'),
+						'username' => new external_value(PARAM_TEXT, 'username'),
                         'firstname' => new external_value(PARAM_TEXT, 'fistname'),
                         'lastname' => new external_value(PARAM_TEXT, 'lastname'),
                         'grades' => new external_multiple_structure(

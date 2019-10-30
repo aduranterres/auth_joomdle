@@ -22,7 +22,7 @@
 
 $string['pluginname'] = 'Joomdle';
 $string['auth_joomdletitle'] = 'Joomdle';
-$string['auth_joomdledescription'] = 'Este método utiliza servicios web para saber si un usuario tiene una sesión válida en Joomla, version 1.2.4';
+$string['auth_joomdledescription'] = 'Este método utiliza servicios web para saber si un usuario tiene una sesión válida en Joomla, version 1.2.6';
 $string['joomla_sp_name'] = 'Joomdle';
 $string['joomla_sp_description'] = 'Servicios para la integración con Joomla<br>';
 $string['auth_joomla_url'] = 'URL de Joomla<br>';
@@ -63,3 +63,5 @@ $string['auth_joomla_forward_events'] = 'Reenviar eventos a Joomla';
 $string['auth_joomla_forward_events_description'] = 'Reenviar eventos para que los plugins de Joomla puedan usarlos';
 $string['auth_joomla_logout_with_redirect'] = 'Usar logout con redirección';
 $string['auth_joomla_logout_with_redirect_description'] = 'Sólo necesario con múltiples dominios y "Recuérdame" activado';
+$string['auth_joomla_single_log_out'] = 'Cierre de sesión único';
+$string['auth_joomla_single_log_out_description'] = 'Salir de Joomla al salir de Moodle';

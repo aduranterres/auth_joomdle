@@ -46,6 +46,7 @@ $time      = optional_param('time', '', PARAM_TEXT);
 $itemid      = optional_param('Itemid', '', PARAM_TEXT);
 $lang      = optional_param('lang', '', PARAM_TEXT);
 $topic      = optional_param('topic', '', PARAM_TEXT);
+$section      = optional_param('section', '', PARAM_TEXT);
 $redirect      = optional_param('redirect', '', PARAM_TEXT); // Redirect moodle param.
 
 $auth = new auth_plugin_joomdle ();
@@ -106,6 +107,11 @@ if ($use_wrapper) {
             $redirect_url .= "/index.php?option=com_joomdle&view=wrapper&moodle_page_type=$mtype&id=$id&Itemid=$itemid";
             if ($topic)
                 $redirect_url .= '&topic='.$topic;
+            if ($section)
+                $redirect_url .= '&section='.$section;
+            break;
+        case "coursecategory":
+            $redirect_url .= "/index.php?option=com_joomdle&view=wrapper&moodle_page_type=$mtype&id=$id&Itemid=$itemid";
             break;
         case "news":
             $redirect_url .= "/index.php?option=com_joomdle&view=wrapper&moodle_page_type=$mtype&id=$id&Itemid=$itemid";
@@ -150,6 +156,12 @@ if ($use_wrapper) {
             if ($topic) {
                 $redirect_url .= '&topic='.$topic;
             }
+            if ($section) {
+                $redirect_url .= '#section-'.$section;
+            }
+            break;
+        case "coursecategory":
+            $redirect_url .= "/course/index.php?categoryid=".$id;
             break;
         case "news":
             $redirect_url .= "/mod/forum/discuss.php?d=$id";
