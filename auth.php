@@ -55,7 +55,7 @@ class auth_plugin_joomdle extends auth_plugin_manual {
      */
     public function __construct() {
         $this->authtype = 'joomdle';
-    //    $this->config = get_config('auth/joomdle');
+        $this->config = get_config('auth_joomdle');
     }
 
     public function can_signup() {
@@ -3418,6 +3418,8 @@ class auth_plugin_joomdle extends auth_plugin_manual {
                 break;
         }
 
+        $where = '(' . $where . ') AND ca.visible = 1 AND co.visible = 1';
+
         switch ( $ordering ) {
             case 'alpha':
                 $order = 'co.fullname ASC';
@@ -3608,7 +3610,7 @@ class auth_plugin_joomdle extends auth_plugin_manual {
 
                     $like = $DB->sql_like('cs.name', '?', false);
                     $likes[] = $like;
-                    $params[] = $text;
+                    $params[] = $word;
 
                     $where2 = '(' . implode(  ') OR (', $likes ) . ')';
                     $wheres2[] = $where2;
@@ -3616,7 +3618,7 @@ class auth_plugin_joomdle extends auth_plugin_manual {
                 $where = '(' . implode( ($phrase == 'all' ? ') AND (' : ') OR ('), $wheres2 ) . ')';
                 break;
         }
-        $where .= " and cs.visible = 1";
+        $where = '(' . $where . ') AND cs.visible = 1 AND co.visible = 1';
 
         switch ( $ordering ) {
             case 'alpha':
@@ -3637,7 +3639,7 @@ class auth_plugin_joomdle extends auth_plugin_manual {
         }
 
         /* REMEMBER: For get_records_sql First field in query must be UNIQUE!!!!! */
-        $query = "SELECT cs.id, cs.name,
+        $query = "SELECT cs.id, cs.name as sec_name,
             co.id          AS remoteid,
             co.fullname,
             cs.course,
