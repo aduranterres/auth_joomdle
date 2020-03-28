@@ -130,6 +130,11 @@ class auth_joomdle_handler {
         $sync_to_joomla = get_config('auth_joomdle', 'sync_to_joomla');
         $forward_events = get_config('auth_joomdle', 'forward_events');
 
+        // "Forward" event to Joomla
+        if ($forward_events) {
+            $auth_joomdle->call_method ('moodleEvent', 'UserUpdated',  $userinfo);
+        }
+
         if (!$sync_to_joomla)
             return true;
 
@@ -196,11 +201,6 @@ class auth_joomdle_handler {
         }
 
         $auth_joomdle->call_method ("updateUser", $userinfo);
-
-        // "Forward" event to Joomla
-        if ($forward_events) {
-            $auth_joomdle->call_method ('moodleEvent', 'UserUpdated',  $userinfo);
-        }
 
         return true;
     }

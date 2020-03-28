@@ -135,6 +135,17 @@ class joomdle_moodle_config {
             return;
         }
 
+        // Check if there is already a service with name=Joomdle that could conflict because of index.
+        $service = $DB->get_record('external_services',
+                        array('name' => 'Joomdle'), '*');
+
+        if ($service) {
+            // Change shortname of this service to joomdle so that we can use it.
+            $service->shortname = 'joomdle';
+            $webservicemanager->update_external_service ($service);
+            return;
+        }
+
         $servicedata = new stdClass ();
         $servicedata->name = 'Joomdle';
         $servicedata->shortname = 'joomdle';

@@ -546,6 +546,7 @@ class auth_plugin_joomdle extends auth_plugin_manual {
         else
             $c = enrol_get_users_courses ($user->id, true, array ('summary'));
 
+        $options['noclean'] = true;
         $courses = array ();
         $i = 0;
         foreach ($c as $course) {
@@ -556,8 +557,12 @@ class auth_plugin_joomdle extends auth_plugin_manual {
             $record['cat_name'] = $this->get_cat_name ($course->category);
             $record['summary'] = $course->summary;
 
-            // Check if user can self-unenrol.
             $context = context_course::instance($course->id);
+            $record['summary'] = file_rewrite_pluginfile_urls ($record['summary'], 'pluginfile.php', $context->id, 'course', 'summary', null);
+            $record['summary'] = str_replace ('pluginfile.php', '/auth/joomdle/pluginfile_joomdle.php', $record['summary']);
+            $record['summary'] = format_text($record['summary'], FORMAT_MOODLE, $options);
+
+            // Check if user can self-unenrol.
             if ((has_capability('enrol/manual:unenrolself', $context, $user->id)) ||
                     (has_capability('enrol/self:unenrolself', $context, $user->id)))
                 $record['can_unenrol'] = 1;
@@ -2739,15 +2744,49 @@ class auth_plugin_joomdle extends auth_plugin_manual {
 
         $filtercourse = $DB->get_records_list('course', 'id', $coursestoload);
 
+        $gs = array ();
         $true = true;
-        if ($CFG->version >= 2011070100) {
+        if ($CFG->version >= 2018120301) {
             list($courses, $group, $user) = calendar_set_filters($filtercourse, $true);
             $courses = array ($id => $id);
 
             if ($username != '') {
                 // Show only events for groups where user is a member.
                 $groups = groups_get_all_groups($id);
-                $gs = array ();
+                foreach ($groups as $group) {
+                    $found = false;
+                    // Check is user is a member of the group.
+                    $members = $this->get_group_members ($group->id);
+                    foreach ($members as $member) {
+                        if ($member['username'] == $username) {
+                            $found = true;
+                            break;
+                        }
+                    }
+                    if ($found)
+                        $gs[$group->id] = $group->id;
+                }
+            }
+
+            $daysinfuture = CALENDAR_DEFAULT_UPCOMING_LOOKAHEAD;
+            $maxevents = CALENDAR_DEFAULT_UPCOMING_MAXEVENTS;
+            $display = new \stdClass;
+            $display->range = $daysinfuture; // How many days in the future we 'll look.
+            $display->maxevents = $maxevents;
+            $now = time(); // We 'll need this later.
+            $usermidnighttoday = usergetmidnight($now);
+            $display->tstart = $usermidnighttoday;
+            $display->tend = usergetmidnight($display->tstart + DAYSECS * $display->range + 3 * HOURSECS) - 1;
+
+            $events = calendar_get_legacy_events ($display->tstart, $display->tend, array ($user->id), $gs, $courses);
+
+        } else if ($CFG->version >= 2011070100) {
+            list($courses, $group, $user) = calendar_set_filters($filtercourse, $true);
+            $courses = array ($id => $id);
+
+            if ($username != '') {
+                // Show only events for groups where user is a member.
+                $groups = groups_get_all_groups($id);
                 foreach ($groups as $group) {
                     $found = false;
                     // Check is user is a member of the group.
@@ -6330,6 +6369,7 @@ class auth_plugin_joomdle extends auth_plugin_manual {
         return $cs;
     }
 
+    // Deprecated: to be deleted
     public function get_course_progress ($id, $username) {
         global $CFG, $DB;
 
@@ -6423,6 +6463,7 @@ class auth_plugin_joomdle extends auth_plugin_manual {
         return $es;
     }
 
+    // Deprecated: to be deleted
     public function my_courses_progress ($username) {
         $courses = $this->my_courses ($username);
 
@@ -6459,7 +6500,7 @@ class auth_plugin_joomdle extends auth_plugin_manual {
         $blockcontext = CONTEXT_BLOCK::instance($block->id);
 
         $activities = block_completion_progress_get_activities($id, $config);
-        $activities = block_completion_progress_filter_visibility($activities, $user->id, $id);
+        $activities = block_completion_progress_filter_visibility($activities, $user->id, $id, array ());
         $submissions = block_completion_progress_student_submissions ($id, $user->id);
         $completions = block_completion_progress_completions($activities, $user->id, $course, $submissions);
         $es = array ();
@@ -6470,7 +6511,7 @@ class auth_plugin_joomdle extends auth_plugin_manual {
             $e['id'] = $event['id'];
             $e['link'] = $event['url'];
             $e['completed'] = $completions[$event['id']];
-            $e['available'] = $event['available'];
+            $e['available'] = (int) $event['available'];
 
             $es[] = $e;
         }
