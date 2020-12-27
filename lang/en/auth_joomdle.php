@@ -22,7 +22,7 @@
 
 
 $string['pluginname'] = 'Joomdle';
-$string['auth_joomdledescription'] = 'This method uses Joomdle web services to know whether a user has a valid session in Joomla, version 1.2.6';
+$string['auth_joomdledescription'] = 'This method uses Joomdle web services to know whether a user has a valid session in Joomla';
 
 $string['joomla_sp_name'] = 'Joomdle';
 $string['joomla_sp_description'] = 'Services for Joomla Integration<br>';

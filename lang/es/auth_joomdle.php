@@ -22,7 +22,7 @@
 
 $string['pluginname'] = 'Joomdle';
 $string['auth_joomdletitle'] = 'Joomdle';
-$string['auth_joomdledescription'] = 'Este método utiliza servicios web para saber si un usuario tiene una sesión válida en Joomla, version 1.2.6';
+$string['auth_joomdledescription'] = 'Este método utiliza servicios web para saber si un usuario tiene una sesión válida en Joomla';
 $string['joomla_sp_name'] = 'Joomdle';
 $string['joomla_sp_description'] = 'Servicios para la integración con Joomla<br>';
 $string['auth_joomla_url'] = 'URL de Joomla<br>';

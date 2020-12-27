@@ -2686,8 +2686,10 @@ class auth_plugin_joomdle extends auth_plugin_manual {
                     $conditions = array ('username' => $username);
                     $user = $DB->get_record('user', $conditions);
 
-                    if (!$user)
-                        continue;
+                    if (!$user) {
+                        $include = false;
+                        break;
+                    }
 
                     $conditions = array ('enrolid' => $enrol->id, 'userid' => $user->id);
                     $ue = $DB->get_record('user_enrolments', $conditions);
@@ -2699,8 +2701,10 @@ class auth_plugin_joomdle extends auth_plugin_manual {
                     $conditions = array ('username' => $username);
                     $user = $DB->get_record('user', $conditions);
 
-                    if (!$user)
-                        continue;
+                    if (!$user) {
+                        $include = false;
+                        break;
+                    }
 
                     $conditions = array ('enrolid' => $enrol->id, 'userid' => $user->id);
                     $ue = $DB->get_record('user_enrolments', $conditions);
@@ -5870,7 +5874,7 @@ class auth_plugin_joomdle extends auth_plugin_manual {
         global $CFG, $DB;
 
         require_once($CFG->dirroot.'/mod/questionnaire/questionnaire.class.php');
-        require_once($CFG->dirroot.'/mod/questionnaire/classes/question/base.php');
+        require_once($CFG->dirroot.'/mod/questionnaire/classes/question/question.php');
 
         $params = array ($id);
         $select = 'surveyid = ? AND deleted = \'n\' AND type_id != 99';
