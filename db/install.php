@@ -23,35 +23,49 @@
 function xmldb_auth_joomdle_install() {
     global $CFG, $DB;
 
-    /*
-    $joomdle_config = new joomdle_moodle_config ();
-    $joomdle_config->enable_web_services ();
-    $joomdle_config->enable_xmlrpc ();
-
-    if ($CFG->version >= 2018051700)
-    {
-        $joomdle_config->create_user ();
-        $joomdle_config->add_user_capability ();
-        $joomdle_config->create_webservice ();
-        $joomdle_config->add_functions ();
-        $joomdle_config->add_user_to_service ();
-        $joomdle_config->create_token ();
-    }
-    */
 }
 
+// Setup is called from admin_setting_configtext_initial_config.
 class joomdle_moodle_config {
 
     public function enable_web_services () {
         set_config('enablewebservices', 1);
     }
 
+    public function enable_protocol ($protocol) {
+        global $CFG;
+
+        if ($protocol == 'xmlrpc')
+            $this->enable_xmlrpc ();
+        else if ($protocol == 'rest')
+            $this->enable_rest ();
+    }
+
     public function enable_xmlrpc () {
         global $CFG;
+
+        // XMLRPC not available from Moodle 4.1
+        if ($CFG->version >= 20221128)  {
+            return;
+        }
 
         $active_webservices = empty($CFG->webserviceprotocols) ? array() : explode(',', $CFG->webserviceprotocols);
 
         $webservice = 'xmlrpc';
+        if (!in_array($webservice, $active_webservices)) {
+            $active_webservices[] = $webservice;
+            $active_webservices = array_unique($active_webservices);
+
+            set_config('webserviceprotocols', implode(',', $active_webservices));
+        }
+    }
+
+    public function enable_rest () {
+        global $CFG;
+
+        $active_webservices = empty($CFG->webserviceprotocols) ? array() : explode(',', $CFG->webserviceprotocols);
+
+        $webservice = 'rest';
         if (!in_array($webservice, $active_webservices)) {
             $active_webservices[] = $webservice;
             $active_webservices = array_unique($active_webservices);
@@ -103,9 +117,16 @@ class joomdle_moodle_config {
             $roleid = $role->id;
         }
         
-        // Enable xmlrpc capability for role.
+        if ($CFG->version < 20221128)  {
+            // Enable xmlrpc capability for role.
+            // XMLRPC not available from Moodle 4.1
+            $context = context_system::instance();
+            assign_capability('webservice/xmlrpc:use', CAP_ALLOW, $roleid, $context->id, true);
+        }
+
+        // Enable REST capability for role.
         $context = context_system::instance();
-        assign_capability('webservice/xmlrpc:use', CAP_ALLOW, $roleid, $context->id, true);
+        assign_capability('webservice/rest:use', CAP_ALLOW, $roleid, $context->id, true);
 
         // Enable forums read.
         $context = context_system::instance();
@@ -221,6 +242,7 @@ class joomdle_moodle_config {
     public function create_token () {
         global $CFG, $DB;
 
+        require_once($CFG->dirroot . '/lib/externallib.php');
         require_once($CFG->dirroot . '/webservice/lib.php');
         require_once($CFG->dirroot . '/auth/joomdle/db/services.php');
 

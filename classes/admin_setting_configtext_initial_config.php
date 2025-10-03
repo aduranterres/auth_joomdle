@@ -22,8 +22,6 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Special setting for auth_joomdle that does initial setup
  *
@@ -43,7 +41,7 @@ class auth_joomdle_admin_setting_configtext_initial_config extends admin_setting
 
         global $CFG;
 
-        // Joomdle initial config
+        // Joomdle initial config.
 
         require_once($CFG->dirroot.'/auth/joomdle/db/install.php');
         require_once($CFG->dirroot.'/lib/upgradelib.php');
@@ -51,7 +49,6 @@ class auth_joomdle_admin_setting_configtext_initial_config extends admin_setting
         if (!$this->initial_config_already_done ()) {
             $joomdle_config = new joomdle_moodle_config ();
             $joomdle_config->enable_web_services ();
-            $joomdle_config->enable_xmlrpc ();
             $joomdle_config->create_user ();
             $joomdle_config->add_user_capability ();
             $joomdle_config->create_webservice ();
@@ -68,17 +65,18 @@ class auth_joomdle_admin_setting_configtext_initial_config extends admin_setting
     private function initial_config_already_done () {
         global $CFG, $DB;
 
-        // We need to check if config was already done
-        // We check the presence of Joomdle service
+        // We need to check if config was already done.
+        // We check the presence of Joomdle service.
 
         require_once($CFG->dirroot . '/webservice/lib.php');
 
         $webservicemanager = new webservice;
         $service = $webservicemanager->get_external_service_by_shortname ('joomdle');
 
-        if ($service)
+        if ($service) {
             return true;
-        else 
+        } else {
             return false;
+        }
     }
 }

@@ -989,5 +989,19 @@ $functions = array(
         'description' => 'Get Moodle version',
         'type'        => 'read',
     ),
+    'joomdle_enable_user' => array(
+        'classname'   => 'joomdle_helpers_external',
+        'methodname'  => 'enable_user',
+        'classpath'   => 'auth/joomdle/helpers/externallib.php',
+        'description' => 'Enable/Disable user',
+        'type'        => 'read',
+    ),
+    'joomdle_get_course_users' => array(
+        'classname'   => 'joomdle_helpers_external',
+        'methodname'  => 'get_course_users',
+        'classpath'   => 'auth/joomdle/helpers/externallib.php',
+        'description' => 'Get course users',
+        'type'        => 'read',
+    ),
 
 );

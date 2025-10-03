@@ -14,17 +14,33 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+defined('MOODLE_INTERNAL') || die();
+
 /**
- * Joomdle version file
+ * Special setting for auth_joomdle to enable the selected ws protocol
  *
  * @package    auth_joomdle
- * @copyright  2009 Qontori Pte Ltd
+ * @copyright  2021 Qontori
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+class auth_joomdle_admin_setting_configselect_initial_config extends admin_setting_configselect {
 
+    /**
+     * We need to enable the selected ws protocol
+     *
+     * @param string $data Form data.
+     * @return string Empty when no errors.
+     */
+    public function write_setting($data) {
 
-$plugin->version  = 2025100300;
-$plugin->requires = 2018120300;
-$plugin->maturity = MATURITY_STABLE;
-$plugin->release = "2.4.0";
-$plugin->component = 'auth_joomdle';
+        global $CFG;
+
+        require_once($CFG->dirroot.'/auth/joomdle/db/install.php');
+        require_once($CFG->dirroot.'/lib/upgradelib.php');
+
+        $joomdle_config = new joomdle_moodle_config ();
+        $joomdle_config->enable_protocol ($data);
+
+        return parent::write_setting($data);
+    }
+}

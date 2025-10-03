@@ -65,22 +65,23 @@ if (($user->auth == 'joomdle') || (!$user)) {
         /* Logged user trying to access */
         $logged = $auth->call_method ("confirmJoomlaSession", $username, $token);
 
-        if (is_array ($logged) && xmlrpc_is_fault($logged)) {
-            trigger_error("xmlrpc: $response[faultString] ($response[faultCode])");
-        } else {
-            if ($logged) {
-                // Log in.
-                $user = get_complete_user_data('username', $username);
-                if (!$user) {
-                    if ($create_user) {
-                        $auth->create_joomdle_user ($username);
-                    } else {
-                        /* If the user does not exists and we don't have to create it, we are done */
-                        $redirect_url = get_config ('auth_joomdle', 'joomla_url');
-                        redirect($redirect_url);
-                    }
+        if ($logged === TRUE) {
+            // User is logged in Joomla.
+            $user = get_complete_user_data('username', $username);
+            if (!$user) {
+                if ($create_user) {
+                    $auth->create_joomdle_user ($username);
+                } else {
+                    /* If the user does not exists and we don't have to create it, we are done */
+                    $redirect_url = get_config ('auth_joomdle', 'joomla_url');
+                    redirect($redirect_url);
                 }
-                $user = get_complete_user_data('username', $username);
+            }
+            $user = get_complete_user_data('username', $username);
+
+            if (!$user->suspended) {
+
+                // Log the user in.
                 complete_user_login($user);
 
                 // Call user_authenticated_hook.
@@ -89,8 +90,8 @@ if (($user->auth == 'joomdle') || (!$user)) {
                     $hauth = get_auth_plugin($hau);
                     $hauth->user_authenticated_hook($user, $username, "");
                 }
-            } // Logged.
-        }
+            }
+        } // Logged.
     } // Username != guest.
 } // auth = joomdle
 
@@ -227,5 +228,9 @@ if ($use_wrapper) {
 if ($lang) {
     $redirect_url .= '&lang='.$lang;
 }
+
+// Kludge to deal with Login form with no redirect set
+if (strstr ($redirect_url, 'task=user.login'))
+    $redirect_url = get_config ('auth_joomdle', 'joomla_url');
 
 redirect($redirect_url);

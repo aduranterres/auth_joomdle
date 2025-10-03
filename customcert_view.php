@@ -15,23 +15,18 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Handles viewing a customcert.
+ * Handles viewing the certificates for a certain user.
  *
  * @package    mod_customcert
- * @copyright  2013 Mark Nelson <markn@moodle.com>
+ * @copyright  2016 Mark Nelson <markn@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 require_once('../../config.php');
 require_once( '../../auth/joomdle/auth.php');
 
-
-$id = required_param('id', PARAM_INT);
-$action = optional_param('action', '', PARAM_ALPHA);
-$token         = optional_param('token',  '',  PARAM_TEXT);
-$username = optional_param('username',   '',   PARAM_TEXT);
-
-$username = strtolower ($username);
+$username = optional_param('username', '', PARAM_TEXT);
+$token = optional_param('token', '', PARAM_TEXT);
 
 $auth = new auth_plugin_joomdle();
 $logged = $auth->call_method ("confirmJoomlaSession", $username, $token);
@@ -43,110 +38,70 @@ if (!$logged) {
 $USER = get_complete_user_data('username', $username);
 complete_user_login($USER);
 
-$cm = get_coursemodule_from_id('customcert', $id, 0, false, MUST_EXIST);
-$course = $DB->get_record('course', array('id' => $cm->course), '*', MUST_EXIST);
+$userid = $USER->id;
+$user = $USER;
 
-require_login($course->id, true, $cm);
-$context = context_module::instance($cm->id);
-require_capability('mod/customcert:view', $context);
+$download = optional_param('download', null, PARAM_ALPHA);
+$courseid = optional_param('course', null, PARAM_INT);
+$downloadcert = optional_param('downloadcert', '', PARAM_BOOL);
+if ($downloadcert) {
+    $certificateid = required_param('certificateid', PARAM_INT);
+    $customcert = $DB->get_record('customcert', ['id' => $certificateid], '*', MUST_EXIST);
 
-$customcert = $DB->get_record('customcert', array('id' => $cm->instance), '*', MUST_EXIST);
-$template = $DB->get_record('customcert_templates', array('id' => $customcert->templateid), '*', MUST_EXIST);
-
-$context = context_module::instance($cm->id);
-
-// Initialize $PAGE, compute blocks.
-$PAGE->set_url('/mod/customcert/view.php', array('id' => $cm->id));
-$PAGE->set_context($context);
-$PAGE->set_cm($cm);
-
-
-// Initialise $PAGE.
-$pageurl = new moodle_url('/mod/customcert/view.php', array('id' => $cm->id));
-\mod_customcert\page_helper::page_setup($pageurl, $context, format_string($customcert->name));
-
-// Check if the user can view the certificate based on time spent in course.
-if ($customcert->requiredtime && !has_capability('mod/certificate:manage', $context)) {
-    if (\mod_customcert\certificate::get_course_time($course->id) < ($customcert->requiredtime * 60)) {
-        $a = new stdClass;
-        $a->requiredtime = $customcert->requiredtime;
-        notice(get_string('requiredtimenotmet', 'certificate', $a), "$CFG->wwwroot/course/view.php?id=$course->id");
-        die;
+    // Check there exists an issued certificate for this user.
+    if (!$issue = $DB->get_record('customcert_issues', ['userid' => $userid, 'customcertid' => $customcert->id])) {
+        throw new moodle_exception('You have not been issued a certificate');
     }
 }
+$page = optional_param('page', 0, PARAM_INT);
+$perpage = optional_param('perpage', \mod_customcert\certificate::CUSTOMCERT_PER_PAGE, PARAM_INT);
+$pageurl = $url = new moodle_url('/mod/customcert/my_certificates.php', ['userid' => $userid,
+    'page' => $page, 'perpage' => $perpage]);
 
-// Check that no action was passed, if so that means we are not outputting to PDF.
-if (empty($action)) {
-    // Get the current groups mode.
-    if ($groupmode = groups_get_activity_groupmode($cm)) {
-        groups_get_activity_group($cm, true);
-    }
 
-    // Generate the link to the report if there are issues to display.
-    $reportlink = '';
-    if (has_capability('mod/customcert:manage', $context)) {
-        // Get the total number of issues.
-        $numissues = \mod_customcert\certificate::get_number_of_issues($customcert->id, $cm, $groupmode);
-        $href = new moodle_urL('/mod/customcert/report.php', array('id' => $cm->id));
-        $url = html_writer::tag('a', get_string('viewcustomcertissues', 'customcert', $numissues),
-            array('href' => $href->out()));
-        $reportlink = html_writer::tag('div', $url, array('class' => 'reportlink'));
-    }
+// Requires a login.
+if ($courseid) {
+    require_login($courseid);
+} else {
+    require_login();
+}
 
-    // Generate the intro content if it exists.
-    $intro = '';
-    if (!empty($customcert->intro)) {
-        $intro = $OUTPUT->box(format_module_intro('customcert', $customcert, $cm->id), 'generalbox', 'intro');
-    }
+// Check that we have a valid user.
+//$user = \core_user::get_user($userid, '*', MUST_EXIST);
 
-    // If the current user has been issued a customcert generate HTML to display the details.
-    $issuelist = '';
-    if ($issues = $DB->get_records('customcert_issues', array('userid' => $USER->id, 'customcertid' => $customcert->id))) {
-        $header = $OUTPUT->heading(get_string('summaryofissue', 'customcert'));
+// If we are viewing certificates that are not for the currently logged in user then do a capability check.
+if (($userid != $USER->id) && !has_capability('mod/customcert:viewallcertificates', context_system::instance())) {
+    throw new moodle_exception('You are not allowed to view these certificates');
+}
 
-        $table = new html_table();
-        $table->class = 'generaltable';
-        $table->head = array(get_string('issued', 'customcert'));
-        $table->align = array('left');
-        $table->attributes = array('style' => 'width:20%; margin:auto');
+$PAGE->set_url($pageurl);
+$PAGE->set_context(context_user::instance($userid));
+$PAGE->set_title(get_string('mycertificates', 'customcert'));
+$PAGE->set_pagelayout('standard');
+$PAGE->navigation->extend_for_user($user);
 
-        foreach ($issues as $issue) {
-            $row = array();
-            $row[] = userdate($issue->timecreated);
-            $table->data[$issue->id] = $row;
-        }
-
-        $issuelist = $header . html_writer::table($table) . "<br />";
-    }
-
-    // Create the button to download the customcert.
-    $linkname = get_string('getcustomcert', 'customcert');
-    $link = new moodle_url('/mod/customcert/view.php', array('id' => $cm->id, 'action' => 'download'));
-    $downloadbutton = new single_button($link, $linkname);
-    $downloadbutton->add_action(new popup_action('click', $link, 'customcertpopup', array('height' => 600, 'width' => 800)));
-    $downloadbutton = html_writer::tag('div', $OUTPUT->render($downloadbutton), array('style' => 'text-align:center'));
-
-    // Output all the page data.
-    echo $OUTPUT->header();
-    groups_print_activity_menu($cm, $pageurl);
-    echo $reportlink;
-    echo $intro;
-    echo $issuelist;
-    echo $downloadbutton;
-    echo $OUTPUT->footer($course);
-    exit;
-} else { // Output to pdf
-    // Create new customcert issue record if one does not already exist.
-    if (!$DB->record_exists('customcert_issues', array('userid' => $USER->id, 'customcertid' => $customcert->id))) {
-        $customcertissue = new stdClass();
-        $customcertissue->customcertid = $customcert->id;
-        $customcertissue->userid = $USER->id;
-        $customcertissue->code = \mod_customcert\certificate::generate_code();
-        $customcertissue->timecreated = time();
-        // Insert the record into the database.
-        $DB->insert_record('customcert_issues', $customcertissue);
-    }
-    // Now we want to generate the PDF.
+// Check if we requested to download a certificate.
+if ($downloadcert) {
+    $template = $DB->get_record('customcert_templates', ['id' => $customcert->templateid], '*', MUST_EXIST);
     $template = new \mod_customcert\template($template);
-    $template->generate_pdf();
+    $template->generate_pdf(false, $userid);
+    exit();
 }
+
+$table = new \mod_customcert\my_certificates_table($userid, $download);
+$table->define_baseurl($pageurl);
+
+if ($table->is_downloading()) {
+    $table->download();
+    exit();
+}
+
+// Additional page setup.
+$PAGE->navbar->add(get_string('profile'), new moodle_url('/user/profile.php', ['id' => $userid]));
+$PAGE->navbar->add(get_string('mycertificates', 'customcert'));
+
+echo $OUTPUT->header();
+echo $OUTPUT->heading(get_string('mycertificates', 'customcert'));
+echo html_writer::div(get_string('mycertificatesdescription', 'customcert'));
+$table->out($perpage, false);
+echo $OUTPUT->footer();

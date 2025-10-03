@@ -27,6 +27,7 @@ if ($ADMIN->fulltree) {
 
     // We use a custom admin setting since we need to set things up on install
     require_once($CFG->dirroot.'/auth/joomdle/classes/admin_setting_configtext_initial_config.php');
+    require_once($CFG->dirroot.'/auth/joomdle/classes/admin_setting_configselect_initial_config.php');
 
     $settings->add(new auth_joomdle_admin_setting_configtext_initial_config ('auth_joomdle/joomla_url',
                 get_string('auth_joomla_url', 'auth_joomdle'),
@@ -38,6 +39,10 @@ if ($ADMIN->fulltree) {
     $settings->add(new admin_setting_configselect('auth_joomdle/connection_method',
         get_string('auth_joomla_connection_method', 'auth_joomdle'),
         get_string('auth_joomla_connection_method_description', 'auth_joomdle'), 'fgc', joomdle_get_connection_methods ()));
+
+    $settings->add(new auth_joomdle_admin_setting_configselect_initial_config('auth_joomdle/ws_protocol',
+        get_string('auth_joomla_ws_protocol', 'auth_joomdle'),
+        get_string('auth_joomla_ws_protocol_description', 'auth_joomdle'), 'rest', joomdle_get_ws_protocols ()));
 
     $settings->add(new admin_setting_configcheckbox('auth_joomdle/sync_to_joomla', get_string('auth_joomla_sync_to_joomla', 'auth_joomdle'),
                        get_string('auth_joomla_sync_to_joomla_description', 'auth_joomdle'), 0));
@@ -63,6 +68,11 @@ if ($ADMIN->fulltree) {
     $settings->add(new admin_setting_configcheckbox('auth_joomdle/logout_with_redirect',
         get_string('auth_joomla_logout_with_redirect', 'auth_joomdle'),
         get_string('auth_joomla_logout_with_redirect_description', 'auth_joomdle'), 0));
+
+    $settings->add(new admin_setting_configtext('auth_joomdle/user_agent', get_string('auth_joomla_user_agent', 'auth_joomdle'),
+                       get_string('auth_joomla_user_agent_description', 'auth_joomdle'),
+                       'Joomdle',
+                       PARAM_RAW));
 
     $settings->add(new admin_setting_configcheckbox('auth_joomdle/jomsocial_activities',
         get_string('auth_joomla_jomsocial_activities', 'auth_joomdle'),

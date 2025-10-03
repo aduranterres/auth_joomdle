@@ -28,3 +28,10 @@ function joomdle_get_connection_methods () {
 
     return $cms;
 }
+
+function joomdle_get_ws_protocols () {
+
+    $cms = array ( 'xmlrpc' => 'XML-RPC', 'rest' => 'REST' );
+
+    return $cms;
+}

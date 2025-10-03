@@ -943,7 +943,7 @@ class joomdle_helpers_external extends external_api {
                                  )
                               )
                            ),
-                        'search' => new external_value(PARAM_TEXT, 'sarch text'),
+                        'search' => new external_value(PARAM_TEXT, 'search text'),
                   )
             );
     }
@@ -1229,12 +1229,6 @@ class joomdle_helpers_external extends external_api {
                   'address' => new external_value(PARAM_TEXT, 'address', VALUE_OPTIONAL),
                   'description' => new external_value(PARAM_RAW, 'description', VALUE_OPTIONAL),
                   'institution' => new external_value(PARAM_TEXT, 'institution', VALUE_OPTIONAL),
-                  'url' => new external_value(PARAM_TEXT, 'url', VALUE_OPTIONAL),
-                  'icq' => new external_value(PARAM_TEXT, 'icq', VALUE_OPTIONAL),
-                  'skype' => new external_value(PARAM_TEXT, 'skype', VALUE_OPTIONAL),
-                  'aim' => new external_value(PARAM_TEXT, 'aim', VALUE_OPTIONAL),
-                  'yahoo' => new external_value(PARAM_TEXT, 'yahoo', VALUE_OPTIONAL),
-                  'msn' => new external_value(PARAM_TEXT, 'msn', VALUE_OPTIONAL),
                   'idnumber' => new external_value(PARAM_TEXT, 'idnumber', VALUE_OPTIONAL),
                   'department' => new external_value(PARAM_TEXT, 'department', VALUE_OPTIONAL),
                   'picture' => new external_value(PARAM_TEXT, 'picture', VALUE_OPTIONAL),
@@ -2395,6 +2389,7 @@ class joomdle_helpers_external extends external_api {
                     array(
                         'name' => new external_value(PARAM_TEXT, 'name'),
                         'id' => new external_value(PARAM_INT, 'id'),
+                        'code' => new external_value(PARAM_TEXT, 'code', VALUE_OPTIONAL),
                     )
                 )
             );
@@ -2851,6 +2846,7 @@ class joomdle_helpers_external extends external_api {
                            new external_single_structure(
                               array(
                                  'fullname' => new external_value(PARAM_TEXT, 'item name'),
+                                 'grademin' => new external_value(PARAM_FLOAT, 'grademin', VALUE_OPTIONAL),
                                  'grademax' => new external_value(PARAM_FLOAT, 'grademax'),
                                  'finalgrade' => new external_value(PARAM_FLOAT, 'final grade'),
                                  'letter' => new external_value(PARAM_TEXT, 'grade letter'),
@@ -2860,7 +2856,7 @@ class joomdle_helpers_external extends external_api {
                                              'name' => new external_value(PARAM_TEXT, 'item name'),
                                              'due' => new external_value(PARAM_INT, 'due date'),
                                              'grademax' => new external_value(PARAM_FLOAT, 'grademax'),
-                                             'finalgrade' => new external_value(PARAM_FLOAT, 'final grade'),
+                                             'finalgrade' => new external_value(PARAM_TEXT, 'final grade'),
                                              'feedback' => new external_value(PARAM_RAW, 'feedback'),
                                              'letter' => new external_value(PARAM_TEXT, 'grade letter'),
                                              'module' => new external_value(PARAM_TEXT, 'module'),
@@ -2924,7 +2920,7 @@ class joomdle_helpers_external extends external_api {
                                                 'name' => new external_value(PARAM_TEXT, 'item name'),
                                                 'due' => new external_value(PARAM_INT, 'due date'),
                                                 'grademax' => new external_value(PARAM_FLOAT, 'grademax'),
-                                                'finalgrade' => new external_value(PARAM_FLOAT, 'final grade'),
+                                                'finalgrade' => new external_value(PARAM_TEXT, 'final grade'),
                                                 'feedback' => new external_value(PARAM_RAW, 'feedback'),
                                                 'letter' => new external_value(PARAM_TEXT, 'grade letter'),
                                                 'module' => new external_value(PARAM_TEXT, 'module'),
@@ -4040,7 +4036,7 @@ class joomdle_helpers_external extends external_api {
                 new external_single_structure(
                     array(
                         'email' => new external_value(PARAM_TEXT, 'email'),
-						'username' => new external_value(PARAM_TEXT, 'username'),
+                        'username' => new external_value(PARAM_TEXT, 'username'),
                         'firstname' => new external_value(PARAM_TEXT, 'fistname'),
                         'lastname' => new external_value(PARAM_TEXT, 'lastname'),
                         'grades' => new external_multiple_structure(
@@ -4336,7 +4332,7 @@ class joomdle_helpers_external extends external_api {
                                         new external_single_structure(
                                             array(
                                                 'name' => new external_value(PARAM_TEXT, 'name'),
-                                                'description' => new external_value(PARAM_TEXT, 'description'),
+                                                'description' => new external_value(PARAM_TEXT, 'description', VALUE_OPTIONAL),
                                                 'courseid' => new external_value(PARAM_INT, 'course id'),
                                                 'timestart' => new external_value(PARAM_INT, 'time start'),
                                                 'timeend' => new external_value(PARAM_INT, 'time end'),
@@ -4912,7 +4908,7 @@ class joomdle_helpers_external extends external_api {
         );
     }
 
-    public static function my_enrolments($username, $order_by_cat) {
+    public static function my_enrolments($username) {
         global $CFG, $DB;
 
         $params = self::validate_parameters(self::my_enrolments_parameters(), array('username' => $username));
@@ -4996,7 +4992,8 @@ class joomdle_helpers_external extends external_api {
                            new external_single_structure(
                               array(
                                 'name' => new external_value(PARAM_TEXT, 'name'),
-                                'id' => new external_value(PARAM_INT, 'id')
+                                'id' => new external_value(PARAM_INT, 'id'),
+                                'code' => new external_value(PARAM_TEXT, 'code', VALUE_OPTIONAL),
                               )
                            )
                         )
@@ -5029,7 +5026,7 @@ class joomdle_helpers_external extends external_api {
         return new  external_value(PARAM_INT, 'Moodle version');
     }
 
-    public static function get_moodle_version($search) {
+    public static function get_moodle_version() {
         global $CFG, $DB;
 
         $params = self::validate_parameters(self::get_moodle_version_parameters(), array());
@@ -5040,4 +5037,67 @@ class joomdle_helpers_external extends external_api {
         return $return;
     }
 
+    /* enable_user */
+    public static function enable_user_parameters() {
+        return new external_function_parameters(
+                        array(
+                            'username' => new external_value(PARAM_TEXT, 'username'),
+                            'suspended' => new external_value(PARAM_INT, 'suspend user'),
+                        )
+        );
+    }
+
+    public static function enable_user_returns() {
+        return new  external_value(PARAM_INT, 'multilang compatible name, course unique');
+    }
+
+    public static function enable_user($username, $suspended) {
+        global $CFG, $DB;
+
+        $params = self::validate_parameters(self::enable_user_parameters(), array('username' => $username, 'suspended' => $suspended));
+
+        $auth = new  auth_plugin_joomdle ();
+        $auth->enable_user ($username, $suspended);
+
+        return $suspended;
+    }
+
+    /* get_course_users */
+    public static function get_course_users_parameters() {
+        return new external_function_parameters(
+                        array(
+                            'course_id' => new external_value(PARAM_INT, 'course id'),
+                        )
+        );
+    }
+
+    public static function get_course_users_returns() {
+        return new external_multiple_structure(
+            new external_single_structure(
+               array(
+                  'username' => new external_value(PARAM_TEXT, 'username'),
+                  'roles' => new external_multiple_structure(
+                           new external_single_structure(
+                              array(
+                                'id' => new external_value(PARAM_INT, 'role id'),
+                                'name' => new external_value(PARAM_TEXT, 'role name'),
+                              )
+                           )
+                        )
+               )
+            )
+        );
+    }
+
+    public static function get_course_users($course_id) {
+        global $CFG, $DB;
+
+        $params = self::validate_parameters(self::get_course_users_parameters(),
+                array('course_id' => $course_id));
+
+        $auth = new  auth_plugin_joomdle ();
+        $return = $auth->get_course_users ($course_id);
+
+        return $return;
+    }
 }
