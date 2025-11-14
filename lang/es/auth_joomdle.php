@@ -68,5 +68,3 @@ $string['auth_joomla_single_log_out_description'] = 'Salir de Joomla al salir de
 $string['auth_joomla_ws_protocol'] = 'Protocolo para Servicios Web';
 $string['auth_joomla_ws_protocol_description'] = 'Protocolo de Servicios Web para las comunicaciones';
 $string['cantwritecurlfile'] = 'No se pudo escribir el fichero CURL: {$a}';
-$string['auth_joomla_user_agent'] = 'Agente de usuario';
-$string['auth_joomla_user_agent_description'] = 'Agente de usuario para los servicios web';

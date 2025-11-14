@@ -69,11 +69,6 @@ if ($ADMIN->fulltree) {
         get_string('auth_joomla_logout_with_redirect', 'auth_joomdle'),
         get_string('auth_joomla_logout_with_redirect_description', 'auth_joomdle'), 0));
 
-    $settings->add(new admin_setting_configtext('auth_joomdle/user_agent', get_string('auth_joomla_user_agent', 'auth_joomdle'),
-                       get_string('auth_joomla_user_agent_description', 'auth_joomdle'),
-                       'Joomdle',
-                       PARAM_RAW));
-
     $settings->add(new admin_setting_configcheckbox('auth_joomdle/jomsocial_activities',
         get_string('auth_joomla_jomsocial_activities', 'auth_joomdle'),
         get_string('auth_joomla_jomsocial_activities_description', 'auth_joomdle'), 0));

@@ -176,14 +176,14 @@ class joomlaws {
     public static function addUserGroups_parameters() {
         return     array(
                     'course_id',
-                    'username'
+                    'course_name'
                     );
     }
 
     public static function updateUserGroups_parameters() {
         return     array(
                     'course_id',
-                    'username'
+                    'course_name'
                     );
     }
 

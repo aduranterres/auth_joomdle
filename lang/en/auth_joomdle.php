@@ -74,5 +74,3 @@ $string['auth_joomla_ws_protocol'] = 'Web services protocol';
 $string['auth_joomla_ws_protocol_description'] = 'Web services protocol for communications';
 $string['cantwritecurlfile'] = 'Cannot write CURL file: {$a}';
 $string['cantopencurlfile'] = 'Cannot open CURL file: {$a}';
-$string['auth_joomla_user_agent'] = 'User Agent';
-$string['auth_joomla_user_agent_description'] = 'User Agent to use in web service calls';

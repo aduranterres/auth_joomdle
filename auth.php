@@ -24,6 +24,8 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+use gradereport_user\report\user as user_report;
+
 if (!defined('MOODLE_INTERNAL')) {
     die('Direct access to this script is forbidden.');    // It must be included from a Moodle page.
 }
@@ -294,13 +296,10 @@ class auth_plugin_joomdle extends auth_plugin_manual {
         else
             $request = xmlrpc_encode_request("joomdle.".$method, array ($params, $params2, $params3, $params4, $params5), $options);
 
-        $user_agent = get_config('auth_joomdle', 'user_agent');
-
         $context = stream_context_create(array('http' => array(
             'method' => "POST",
-            'header' => "Content-Type: text/xml",
-            'content' => $request,
-            'user_agent' => $user_agent
+            'header' => "Content-Type: text/xml\r\nUser-Agent: Joomdle",
+            'content' => $request
         )));
         $response = file_get_contents($joomla_xmlrpc_url, false, $context);
 
@@ -337,12 +336,10 @@ class auth_plugin_joomdle extends auth_plugin_manual {
         else
             $request = xmlrpc_encode_request("joomdle.".$method, array ($params, $params2, $params3, $params4, $params5), $options);
 
-        $user_agent = get_config('auth_joomdle', 'user_agent');
-
         $headers = array();
         array_push($headers, "Content-Type: text/xml");
         array_push($headers, "Content-Length: ".strlen($request));
-        array_push($headers, "User-Agent: $user_agent");
+        array_push($headers, "User-Agent: Joomdle");
         array_push($headers, "\r\n");
 
         $ch = curl_init();
@@ -399,12 +396,10 @@ class auth_plugin_joomdle extends auth_plugin_manual {
 
         $request = $this->get_request_rest ($method, $params, $params2, $params3, $params4, $params5);
 
-        $user_agent = get_config('auth_joomdle', 'user_agent');
-
         $headers = array();
         array_push($headers,"Content-Type: application/x-www-form-urlencoded");
         array_push($headers, "Content-Length: ".strlen($request));
-        array_push($headers, "User-Agent: $user_agent");
+        array_push($headers, "User-Agent: Joomdle");
         array_push($headers, "\r\n");
 
         $ch = curl_init();
@@ -442,13 +437,10 @@ class auth_plugin_joomdle extends auth_plugin_manual {
 
         $request = $this->get_request_rest ($method, $params, $params2, $params3, $params4, $params5);
 
-        $user_agent = get_config('auth_joomdle', 'user_agent');
-
         $context = stream_context_create(array('http' => array(
             'method' => "POST",
-            'header' => "Content-Type: application/x-www-form-urlencoded",
-            'content' => $request,
-            'user_agent' => $user_agent
+            'header' => "Content-Type: application/x-www-form-urlencoded\r\nUser-Agent: Joomdle",
+            'content' => $request
         )));
         $response = file_get_contents($url, false, $context);
 
@@ -500,13 +492,10 @@ class auth_plugin_joomdle extends auth_plugin_manual {
         else
             $request = xmlrpc_encode_request("joomdle.".$method, array ($params, $params2, $params3, $params4, $params5), $options);
 
-        $user_agent = get_config('auth_joomdle', 'user_agent');
-
         $context = stream_context_create(array('http' => array(
             'method' => "POST",
-            'header' => "Content-Type: text/xml",
-            'content' => $request,
-            'user_agent' => $user_agent
+            'header' => "Content-Type: text/xml\r\nUser-Agent: Joomdle ",
+            'content' => $request
         )));
         $response = file_get_contents($joomla_xmlrpc_url, false, $context);
 
@@ -547,12 +536,10 @@ class auth_plugin_joomdle extends auth_plugin_manual {
         else
             $request = xmlrpc_encode_request("joomdle.".$method, array ($params, $params2, $params3, $params4, $params5), $options);
 
-        $user_agent = get_config('auth_joomdle', 'user_agent');
-
         $headers = array();
         array_push($headers, "Content-Type: text/xml");
         array_push($headers, "Content-Length: ".strlen($request));
-        array_push($headers, "User-Agent: $user_agent");
+        array_push($headers, "User-Agent: Joomdle");
         array_push($headers, "\r\n");
 
         $ch = curl_init();
@@ -613,12 +600,10 @@ class auth_plugin_joomdle extends auth_plugin_manual {
 
         $request = $this->get_request_rest ($method, $params, $params2, $params3, $params4, $params5);
 
-        $user_agent = get_config('auth_joomdle', 'user_agent');
-
         $headers = array();
         array_push($headers,"Content-Type: application/x-www-form-urlencoded");
         array_push($headers, "Content-Length: ".strlen($request));
-        array_push($headers, "User-Agent: $user_agent");
+        array_push($headers, "User-Agent: Joomdle");
         array_push($headers, "\r\n");
 
         $ch = curl_init();
@@ -660,13 +645,10 @@ class auth_plugin_joomdle extends auth_plugin_manual {
 
         $request = $this->get_request_rest ($method, $params, $params2, $params3, $params4, $params5);
 
-        $user_agent = get_config('auth_joomdle', 'user_agent');
-
         $context = stream_context_create(array('http' => array(
             'method' => "POST",
-            'header' => "Content-Type: application/x-www-form-urlencoded",
-            'content' => $request,
-            'user_agent' => $user_agent
+            'header' => "Content-Type: application/x-www-form-urlencoded\r\nUser-Agent: Joomdle",
+            'content' => $request
         )));
         $response = file_get_contents($url, false, $context);
 
@@ -719,6 +701,8 @@ class auth_plugin_joomdle extends auth_plugin_manual {
                 $newcurrentdata = $newcurrentdata.'['.urlencode($k).']';
                 $this->format_array_postdata_for_curlcall($v, $newcurrentdata, $data);
             }  else { //add the POST parameter to the $data array
+                $k = $k ? $k : '';
+                $v = $v ? $v : '';
                 $data[] = $newcurrentdata.'['.urlencode($k).']='.urlencode($v);
             }
         }
@@ -750,22 +734,11 @@ class auth_plugin_joomdle extends auth_plugin_manual {
         $connection_method = get_config('auth_joomdle', 'connection_method');
 
         if ($connection_method == 'fgc')
-            $response = $this->get_file_fgc ($file);
+            $response = file_get_contents ($file, false, null);
         else
             $response = $this->get_file_curl ($file);
 
         return $response;
-    }
-
-    private function get_file_fgc ($file) {
-        $user_agent = get_config('auth_joomdle', 'user_agent');
-
-        $context = stream_context_create(array('http' => array(
-            'user_agent' => $user_agent
-        )));
-        $file = @file_get_contents($file , false, $context);
-
-        return $file;
     }
 
     private function get_file_curl ($file) {
@@ -787,9 +760,6 @@ class auth_plugin_joomdle extends auth_plugin_manual {
             }
             curl_setopt($ch, CURLOPT_HTTPPROXYTUNNEL, false);
         }
-
-        $user_agent = get_config('auth_joomdle', 'user_agent');
-        curl_setopt($ch, CURLOPT_USERAGENT, $user_agent);
 
         // $output contains the output string.
         $output = curl_exec($ch);
@@ -2539,7 +2509,8 @@ class auth_plugin_joomdle extends auth_plugin_manual {
 
         $gpr = new grade_plugin_return(array('type' => 'report', 'plugin' => 'user', 'courseid' => $id, 'userid' => $user->id));
         $context = context_course::instance($id);
-        $report = new grade_report_user($id, $gpr, $context, $user->id);
+        $report = new user_report($id, $gpr, $context, $user->id);
+
 
         // Get course total.
         $query = "select id
@@ -2588,23 +2559,8 @@ class auth_plugin_joomdle extends auth_plugin_manual {
                     where {$CFG->prefix}grade_categories.id = {$CFG->prefix}grade_items.iteminstance
                     and {$CFG->prefix}grade_items.courseid = ? and (itemtype='category' or itemtype='course')";
 
-                 //   and {$CFG->prefix}grade_items.courseid = ? and itemtype='category'";
-
         $params = array ($id);
         $cats = $DB->get_records_sql($query, $params);
-
-        /*
-        if (count ($cats) == 0) {
-            // No cats, get items  in "main".
-            $query = "select {$CFG->prefix}grade_categories.fullname, {$CFG->prefix}grade_items.id,
-                {$CFG->prefix}grade_items.grademax, {$CFG->prefix}grade_categories.id
-                from {$CFG->prefix}grade_categories, {$CFG->prefix}grade_items
-                where {$CFG->prefix}grade_categories.id = {$CFG->prefix}grade_items.iteminstance
-                and {$CFG->prefix}grade_items.courseid = ? and itemtype='course'";
-            $params = array ($id);
-            $cats = $DB->get_records_sql($query, $params);
-        }
-        */
 
         foreach ($cats as $r) {
             if ($r->fullname != '?')
@@ -3599,18 +3555,19 @@ class auth_plugin_joomdle extends auth_plugin_manual {
     public function create_joomdle_user ($username, $app = '') {
         global $CFG, $DB;
 
+        $newinfo = array ();
+
         $username = strtolower ($username);
         // Crete new user if not exists.
         $conditions = array ('username' => $username);
         $user = $DB->get_record('user', $conditions);
         if (!$user) {
-            $newinfo = array ();
             $user = $this->create_joomdle_user_record($username, "", "joomdle", $userinfo);
 
             // Set first access as now.
             $conditions = array ('id' => $user->id);
             $DB->set_field('user', 'firstaccess', time (), $conditions);
-        } else {
+        } else if ($user->auth == 'joomdle') {
             $needsupdate = false;
 
             $updateuser = new stdClass();
@@ -6050,7 +6007,7 @@ class auth_plugin_joomdle extends auth_plugin_manual {
         return $c;
     }
 
-    private function my_certificates_custom_OLD ($username) {
+    private function my_certificates_custom ($username) {
         global $CFG, $DB;
 
         $username = strtolower ($username);
@@ -6094,34 +6051,6 @@ class auth_plugin_joomdle extends auth_plugin_manual {
         }
 
         return $c;
-    }
-
-    private function my_certificates_custom ($username) {
-        global $CFG, $DB;
-
-        $username = strtolower ($username);
-
-        $user = get_complete_user_data ('username', $username);
-
-        if (!$user)
-            return array ();
-
-        $userid = $user->id;
-
-        $certificates = mod_customcert\certificate::get_certificates_for_user($userid, 0, PHP_INT_MAX, '');
-
-        $cs = array ();
-        foreach ($certificates as $cert)
-        {
-            $c = array ();
-            $c['id'] = $cert->id;
-            $c['name'] = $cert->name;
-            $c['date'] = $cert->timecreated;
-
-            $cs[] = $c;
-        }
-
-        return $cs;
     }
 
     function my_certificates_coursecertificate ($username) {
@@ -6598,20 +6527,16 @@ class auth_plugin_joomdle extends auth_plugin_manual {
         // If single sign out is disabled, just redirect if needed and return.
         if (!get_config ('auth_joomdle', 'single_log_out')) {
             if ($logout_redirect_to_joomla) {
-                $redirect = get_config ('auth_joomdle', 'joomla_url').'/index.php?option=com_joomdle&task=getout';
+                $redirect = get_config ('auth_joomdle', 'joomla_url').'/index.php?option=com_joomdle&task=user.getout';
             }
             return;
         }
 
         $ua = core_useragent::get_user_agent_string ();
-        $r_old = $this->call_method ("logout", $USER->username, $ua);
-        $r = 'joomla_remember_me_' . $r_old;
+        $cookie_suffix = $this->call_method ("logout", $USER->username, $ua);
+        $r = 'joomla_remember_me_' . $cookie_suffix;
 
         // Delete user key from table in Joomla if we had a remember me cookie.
-        if (!array_key_exists ($r, $_COOKIE)) {
-            // Try with pre-3.6 cookie if not found.
-            $r = $r_old;
-        }
         if ((array_key_exists ($r, $_COOKIE))  && ($_COOKIE[$r])) {
             $cookieValue = $_COOKIE[$r];
             $cookieArray = explode('.', $cookieValue);
@@ -6621,7 +6546,7 @@ class auth_plugin_joomdle extends auth_plugin_manual {
 
         // Logout with redirect, to work in cross-domain with "remember me" set
         if (get_config ('auth_joomdle', 'logout_with_redirect')) {
-            $redirect = get_config ('auth_joomdle', 'joomla_url').'/index.php?option=com_joomdle&task=logout';
+            $redirect = get_config ('auth_joomdle', 'joomla_url').'/index.php?option=com_joomdle&task=user.logout';
             return;
         }
         
@@ -6629,7 +6554,6 @@ class auth_plugin_joomdle extends auth_plugin_manual {
             setcookie($r, false,  time() - 42000, '/');
 
         if ($logout_redirect_to_joomla) {
-            //$redirect = get_config ('auth_joomdle', 'joomla_url').'/index.php?option=com_joomdle&task=getout';
             $redirect = get_config ('auth_joomdle', 'joomla_url').'/index.php?option=com_joomdle&view=wrapper&layout=getout&tmpl=component';
         }
     }
@@ -7128,8 +7052,8 @@ class auth_plugin_joomdle extends auth_plugin_manual {
         $login_data = base64_encode ($username.':'.$password);
 
         $redirect_url = get_config ('auth_joomdle', 'joomla_url').
-            '/index.php?option=com_joomdle&view=joomdle&task=login&data='.$login_data;
-        if (property_exists ($SESSION, 'wantsurl'))
+            '/index.php?option=com_joomdle&view=joomdle&task=user.login&data='.$login_data;
+        if ((property_exists ($SESSION, 'wantsurl')) && ($SESSION->wantsurl))
                 $redirect_url .= '&wantsurl='. base64_encode ($SESSION->wantsurl);
 
         redirect($redirect_url);
@@ -7143,7 +7067,7 @@ class auth_plugin_joomdle extends auth_plugin_manual {
 
         $username = str_replace (' ', '%20', $username);
         $login_data = base64_encode ($username.':'.$password);
-        $url = get_config ('auth_joomdle', 'joomla_url').'/index.php?option=com_joomdle&view=joomdle&task=login&data='.$login_data;
+        $url = get_config ('auth_joomdle', 'joomla_url').'/index.php?option=com_joomdle&view=joomdle&task=user.login&data='.$login_data;
 
         $ch = curl_init();
         // Set url.
@@ -7163,9 +7087,6 @@ class auth_plugin_joomdle extends auth_plugin_manual {
 
         // Accept certificate.
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-
-        $user_agent = get_config('auth_joomdle', 'user_agent');
-        curl_setopt($ch, CURLOPT_USERAGENT, $user_agent);
 
         $output = curl_exec($ch);
         curl_close($ch);
