@@ -18,7 +18,7 @@
  * Joomdle event handlers
  *
  * @package    auth_joomdle
- * @copyright  2009 Qontori Pte Ltd
+ * @copyright  2009 Antonio Duran Terres
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -31,8 +31,7 @@ require_once($CFG->dirroot . '/auth/joomdle/auth.php');
  * Event handler for joomdle auth plugin.
  */
 class auth_joomdle_handler {
-
-    public static function user_created (\core\event\user_created $event) {
+    public static function user_created(\core\event\user_created $event) {
         global $CFG, $DB;
 
         $sync_to_joomla = get_config('auth_joomdle', 'sync_to_joomla');
@@ -121,7 +120,7 @@ class auth_joomdle_handler {
     }
 
 
-    public static function user_updated (\core\event\user_updated $event) {
+    public static function user_updated(\core\event\user_updated $event) {
         global $CFG, $DB;
 
         $sync_to_joomla = get_config('auth_joomdle', 'sync_to_joomla');
@@ -141,7 +140,7 @@ class auth_joomdle_handler {
         $user = $event->get_record_snapshot('user', $event->objectid);
 
         if ($user->auth != 'joomdle') {
-                return true;
+            return true;
         }
 
         /* Update user info in Joomla */
@@ -201,7 +200,7 @@ class auth_joomdle_handler {
         return true;
     }
 
-    public static function user_deleted (\core\event\user_deleted $event) {
+    public static function user_deleted(\core\event\user_deleted $event) {
         global $CFG, $DB;
 
         $sync_to_joomla = get_config('auth_joomdle', 'sync_to_joomla');
@@ -231,15 +230,15 @@ class auth_joomdle_handler {
         return true;
     }
 
-    public static function course_created (\core\event\course_created $event) {
+    public static function course_created(\core\event\course_created $event) {
         self::new_course_event ($event);
     }
 
-    public static function course_restored (\core\event\course_restored $event) {
+    public static function course_restored(\core\event\course_restored $event) {
         self::new_course_event ($event);
     }
 
-    private static function new_course_event ($event) {
+    private static function new_course_event($event) {
         global $CFG, $DB;
 
         $forward_events = get_config('auth_joomdle', 'forward_events');
@@ -263,16 +262,16 @@ class auth_joomdle_handler {
 
         $context = context_course::instance($course->id);
         $course->summary = file_rewrite_pluginfile_urls ($course->summary, 'pluginfile.php', $context->id, 'course', 'summary',
-                null);
+            null);
         $course->summary = str_replace ('pluginfile.php', '/auth/joomdle/pluginfile_joomdle.php', $course->summary);
         if ($activities) {
             $auth_joomdle->call_method ('addActivityCourse', (int) $course->id, $course->fullname,  $course->summary,
-                    (int) $course->category, $cat->name);
+                (int) $course->category, $cat->name);
         }
 
         if ($groups) {
             $auth_joomdle->call_method ('addSocialGroup', $course->fullname,  get_string('auth_joomla_group_for_course',
-                        'auth_joomdle') . ' ' . $course->fullname,  (int) $course->id);
+                'auth_joomdle') . ' ' . $course->fullname,  (int) $course->id);
         }
 
         if ($joomla_user_groups) {
@@ -302,7 +301,7 @@ class auth_joomdle_handler {
         return true;
     }
 
-    public static function course_deleted (\core\event\course_deleted $event) {
+    public static function course_deleted(\core\event\course_deleted $event) {
         $forward_events = get_config('auth_joomdle', 'forward_events');
 
         $course = $event->get_record_snapshot('course', $event->objectid);
@@ -335,7 +334,7 @@ class auth_joomdle_handler {
         return true;
     }
 
-    public static function course_updated (\core\event\course_updated $event) {
+    public static function course_updated(\core\event\course_updated $event) {
         global $CFG, $DB;
 
         $forward_events = get_config('auth_joomdle', 'forward_events');
@@ -349,7 +348,7 @@ class auth_joomdle_handler {
 
         if ($groups) {
             $auth_joomdle->call_method ('updateSocialGroup', $course->fullname,
-                    get_string('auth_joomla_group_for_course', 'auth_joomdle') . ' ' .$course->fullname,  (int) $course->id);
+                get_string('auth_joomla_group_for_course', 'auth_joomdle') . ' ' .$course->fullname,  (int) $course->id);
         }
 
         if ($joomla_user_groups) {
@@ -378,7 +377,7 @@ class auth_joomdle_handler {
         return true;
     }
 
-    public static function role_assigned (\core\event\role_assigned $event) {
+    public static function role_assigned(\core\event\role_assigned $event) {
         global $CFG, $DB;
 
         $activities = get_config('auth_joomdle', 'jomsocial_activities');
@@ -409,7 +408,7 @@ class auth_joomdle_handler {
             // Jomsocial activity.
             if ($activities) {
                 $auth_joomdle->call_method ('addActivityCourseEnrolment', $user->username, (int) $courseid, $course->fullname,
-                        (int) $course->category, $cat->name);
+                    (int) $course->category, $cat->name);
             }
 
             $roleid = $event->objectid;
@@ -520,7 +519,7 @@ class auth_joomdle_handler {
         return true;
     }
 
-    public static function role_unassigned (\core\event\role_unassigned $event) {
+    public static function role_unassigned(\core\event\role_unassigned $event) {
         global $DB, $CFG;
 
         $groups = get_config('auth_joomdle', 'jomsocial_groups');
@@ -589,8 +588,9 @@ class auth_joomdle_handler {
                     $type = 'students';
                 }
 
-                if ($type)
+                if ($type) {
                     $auth_joomdle->call_method ('removeGroupMember',  (int) $courseid, $user->username, $type);
+                }
             }
 
             if ($use_kunena_forums) {
@@ -612,7 +612,7 @@ class auth_joomdle_handler {
         return true;
     }
 
-    public static function attempt_submitted (\mod_quiz\event\attempt_submitted $event) {
+    public static function attempt_submitted(\mod_quiz\event\attempt_submitted $event) {
         global $DB , $CFG;
 
         $activities = get_config('auth_joomdle', 'jomsocial_activities');
@@ -627,12 +627,12 @@ class auth_joomdle_handler {
 
         if ($activities) {
             $auth_joomdle->call_method ('addActivityQuizAttempt', $user->username, (int) $event->courseid, $course->fullname,
-                    $quiz->name);
+                $quiz->name);
         }
 
         if ($points) {
             $auth_joomdle->call_method ('addPoints', 'joomdle.quiz_attempt', $user->username, (int) $event->courseid,
-                    $course->fullname);
+                $course->fullname);
         }
 
         // Forward event to Joomla.
@@ -648,7 +648,7 @@ class auth_joomdle_handler {
         return true;
     }
 
-    public static function course_module_created (\core\event\course_module_created $event) {
+    public static function course_module_created(\core\event\course_module_created $event) {
         $use_kunena_forums = get_config('auth_joomdle', 'use_kunena_forums');
         $forward_events = get_config('auth_joomdle', 'forward_events');
 
@@ -673,7 +673,7 @@ class auth_joomdle_handler {
         return true;
     }
 
-    public static function course_module_deleted (\core\event\course_module_deleted $event) {
+    public static function course_module_deleted(\core\event\course_module_deleted $event) {
         $use_kunena_forums = get_config('auth_joomdle', 'use_kunena_forums');
         $forward_events = get_config('auth_joomdle', 'forward_events');
 
@@ -697,7 +697,7 @@ class auth_joomdle_handler {
         return true;
     }
 
-    public static function course_module_updated (\core\event\course_module_updated $event) {
+    public static function course_module_updated(\core\event\course_module_updated $event) {
         $use_kunena_forums = get_config('auth_joomdle', 'use_kunena_forums');
         $forward_events = get_config('auth_joomdle', 'forward_events');
 
@@ -722,7 +722,7 @@ class auth_joomdle_handler {
         return true;
     }
 
-    public static function course_completed (\core\event\course_completed $event) {
+    public static function course_completed(\core\event\course_completed $event) {
         global $DB , $CFG;
 
         $activities = get_config('auth_joomdle', 'jomsocial_activities');
@@ -740,7 +740,7 @@ class auth_joomdle_handler {
 
         if ($points) {
             $auth_joomdle->call_method ('addPoints', 'joomdle.course_completed', $user->username, (int) $event->courseid,
-                    $course->fullname);
+                $course->fullname);
         }
 
         // Forward event to Joomla.
@@ -758,8 +758,7 @@ class auth_joomdle_handler {
     // Note. This does not sync password to Joomla anymore, because hash algo is now different in Joomla and Moodle.
     // We also don't need it: work is done by user_update_password in auth.php for password changes / admin user edits.
     // We have not found a way to make it work for users created in Moodle directly.
-    public static function user_password_updated (\core\event\user_password_updated $event) {
-
+    public static function user_password_updated(\core\event\user_password_updated $event) {
         $sync_to_joomla = get_config('auth_joomdle', 'sync_to_joomla');
         $forward_events = get_config('auth_joomdle', 'forward_events');
 

@@ -16,7 +16,7 @@
 
 /**
  * @package    auth_joomdle
- * @copyright  2009 Qontori Pte Ltd
+ * @copyright  2009 Antonio Duran Terres
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -31,8 +31,7 @@ function xmldb_auth_joomdle_uninstall() {
 }
 
 class joomdle_moodle_deconfig {
-
-    public function delete_user () {
+    public function delete_user() {
         global $CFG, $DB;
 
         require_once($CFG->dirroot . '/auth/joomdle/auth.php');
@@ -41,7 +40,7 @@ class joomdle_moodle_deconfig {
         $auth_joomdle->delete_user ('joomdle_connector');
     }
 
-    public function delete_role () {
+    public function delete_role() {
         global $CFG, $DB;
 
         $conditions = array ('shortname' => 'joomdlews');
@@ -54,7 +53,7 @@ class joomdle_moodle_deconfig {
         delete_role ($role->id);
     }
 
-    public function delete_webservice () {
+    public function delete_webservice() {
         global $CFG, $DB;
 
         require_once($CFG->dirroot . '/webservice/lib.php');
@@ -70,5 +69,4 @@ class joomdle_moodle_deconfig {
         $event->add_record_snapshot('external_services', $service);
         $event->trigger();
     }
-
 }

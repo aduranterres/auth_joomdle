@@ -20,11 +20,10 @@ defined('MOODLE_INTERNAL') || die();
  * Special setting for auth_joomdle to enable the selected ws protocol
  *
  * @package    auth_joomdle
- * @copyright  2021 Qontori
+ * @copyright  2021 Antonio Duran Terres
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class auth_joomdle_admin_setting_configselect_initial_config extends admin_setting_configselect {
-
     /**
      * We need to enable the selected ws protocol
      *
@@ -32,7 +31,6 @@ class auth_joomdle_admin_setting_configselect_initial_config extends admin_setti
      * @return string Empty when no errors.
      */
     public function write_setting($data) {
-
         global $CFG;
 
         require_once($CFG->dirroot.'/auth/joomdle/db/install.php');

@@ -18,11 +18,11 @@
  * Joomdle helper file
  *
  * @package    auth_joomdle
- * @copyright  2009 Qontori Pte Ltd
+ * @copyright  2009 Antonio Duran Terres
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-function joomdle_wrapper_course_get_url ($course) {
+function joomdle_wrapper_course_get_url($course) {
     $joomlaurl = get_config ('auth_joomdle', 'joomla_url');
     return $joomlaurl . "/index.php?option=com_joomdle&view=wrapper&moodle_page_type=course&id=".$course->id;
 }

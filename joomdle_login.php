@@ -18,7 +18,7 @@
  * Joomdle alternative login form
  *
  * @package    auth_joomdle
- * @copyright  2009 Qontori Pte Ltd
+ * @copyright  2009 Antonio Duran Terres
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -29,7 +29,7 @@ $login = optional_param('login', '', PARAM_TEXT);
 $login_token = \core\session\manager::get_login_token();
 // Normal login to Moodle.
 if ($login == 'moodle') {
-?>
+    ?>
 <html>
 <head>
 <title>Joomdle - Moodle login</title>

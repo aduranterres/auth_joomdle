@@ -16,22 +16,45 @@
 
 /**
  * @package   auth_joomdle
- * @copyright  2009 Qontori Pte Ltd
+ * @copyright  2009 Antonio Duran Terres
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 defined('MOODLE_INTERNAL') || die();
 
-function joomdle_get_connection_methods () {
-
+function joomdle_get_connection_methods() {
     $cms = array ( 'fgc' => 'file_get_contents', 'curl' => 'cURL' );
 
     return $cms;
 }
 
-function joomdle_get_ws_protocols () {
-
+function joomdle_get_ws_protocols() {
     $cms = array ( 'xmlrpc' => 'XML-RPC', 'rest' => 'REST' );
 
     return $cms;
+}
+
+/**
+ * Returns a safe SQL expression for ordering course queries.
+ *
+ * @param string $sortby Requested sort order.
+ * @return string SQL expression selected from the allowlist.
+ */
+function joomdle_get_course_sort_order($sortby) {
+    $allowedsortfields = array(
+        'date' => 'co.timecreated DESC',
+        'sortorder' => 'co.sortorder ASC',
+        'fullname' => 'co.fullname ASC',
+        'shortname' => 'co.shortname',
+        'idnumber' => 'co.idnumber',
+        'startdate' => 'co.startdate',
+        'created' => 'co.timecreated',
+        'modified' => 'co.timemodified',
+        'cat_name' => 'ca.name',
+        'created DESC' => 'co.timecreated DESC',
+        'sortorder ASC' => 'co.sortorder ASC',
+        'fullname ASC' => 'co.fullname ASC',
+    );
+
+    return $allowedsortfields[$sortby] ?? $allowedsortfields['created'];
 }

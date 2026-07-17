@@ -18,13 +18,98 @@
  * Joomdle login landing script
  *
  * @package    auth_joomdle
- * @copyright  2009 Qontori Pte Ltd
+ * @copyright  2009 Antonio Duran Terres
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 require_once(dirname(dirname(dirname(__FILE__))) . '/config.php');
-require_once($CFG->libdir.'/authlib.php');
-require_once($CFG->dirroot.'/auth/joomdle/auth.php');
+require_once($CFG->libdir . '/authlib.php');
+require_once($CFG->dirroot . '/auth/joomdle/auth.php');
+
+/**
+ * Checks whether an absolute URL belongs to the same origin as a configured base URL.
+ *
+ * @param string $url URL to validate.
+ * @param string $baseurl Allowed base URL.
+ * @return bool
+ */
+function auth_joomdle_same_origin($url, $baseurl)
+{
+    $urlparts = parse_url($url);
+    $baseparts = parse_url($baseurl);
+
+    if (
+        empty($urlparts['scheme']) || empty($urlparts['host']) ||
+        empty($baseparts['scheme']) || empty($baseparts['host'])
+    ) {
+        return false;
+    }
+
+    $urlscheme = strtolower($urlparts['scheme']);
+    $basescheme = strtolower($baseparts['scheme']);
+    $urlhost = strtolower($urlparts['host']);
+    $basehost = strtolower($baseparts['host']);
+    $urlport = $urlparts['port'] ?? (($urlscheme === 'https') ? 443 : 80);
+    $baseport = $baseparts['port'] ?? (($basescheme === 'https') ? 443 : 80);
+
+    return $urlscheme === $basescheme && $urlhost === $basehost && $urlport === $baseport;
+}
+
+/**
+ * Normalises wantsurl so it can only point to Joomla or Moodle.
+ *
+ * Relative URLs are interpreted as Joomla pages.
+ *
+ * @param string $wantsurl Incoming wantsurl parameter.
+ * @return string Normalised absolute URL, or empty string when invalid.
+ */
+function auth_joomdle_clean_wantsurl($wantsurl)
+{
+    global $CFG;
+
+    $wantsurl = trim($wantsurl);
+    if ($wantsurl === '' || preg_match('#^//#', $wantsurl)) {
+        return '';
+    }
+
+    $wantsurl = clean_param($wantsurl, PARAM_URL);
+    if ($wantsurl === '') {
+        return '';
+    }
+
+    $joomlaurl = get_config('auth_joomdle', 'joomla_url');
+    if (!$joomlaurl) {
+        return '';
+    }
+
+    if (!preg_match('#^[a-z][a-z0-9+.-]*://#i', $wantsurl)) {
+        $joomlaparts = parse_url($joomlaurl);
+        if (empty($joomlaparts['scheme']) || empty($joomlaparts['host'])) {
+            return '';
+        }
+
+        $joomlaorigin = $joomlaparts['scheme'] . '://' . $joomlaparts['host'];
+        if (!empty($joomlaparts['port'])) {
+            $joomlaorigin .= ':' . $joomlaparts['port'];
+        }
+
+        if ($wantsurl[0] !== '/') {
+            $joomlapath = empty($joomlaparts['path']) ? '' : rtrim($joomlaparts['path'], '/');
+            $wantsurl = $joomlapath . '/' . $wantsurl;
+        }
+
+        $wantsurl = $joomlaorigin . $wantsurl;
+    }
+
+    if (
+        auth_joomdle_same_origin($wantsurl, $joomlaurl) ||
+        auth_joomdle_same_origin($wantsurl, $CFG->wwwroot)
+    ) {
+        return $wantsurl;
+    }
+
+    return '';
+}
 
 // It gives a warning if no context set, I guess it does nor matter which we use.
 $PAGE->set_context(context_system::instance());
@@ -32,12 +117,13 @@ $PAGE->set_context(context_system::instance());
 // Grab the GET params.
 $token         = optional_param('token',  '',  PARAM_TEXT);
 $username = optional_param('username',   '',   PARAM_TEXT);
-$username = strtolower ($username);
+$username = strtolower($username);
 $create_user = optional_param('create_user', '',     PARAM_TEXT);
-$wantsurl      = optional_param('wantsurl', '', PARAM_TEXT);
+$wantsurl      = optional_param('wantsurl', '', PARAM_RAW_TRIMMED);
+$wantsurl = auth_joomdle_clean_wantsurl($wantsurl);
 $use_wrapper      = optional_param('use_wrapper', '', PARAM_TEXT);
-$id      = optional_param('id', '', PARAM_TEXT);
-$course_id      = optional_param('course_id', '', PARAM_TEXT); // Additional course_id param used for quiz view.
+$id      = optional_param('id', '', PARAM_INT);
+$course_id      = optional_param('course_id', '', PARAM_INT); // Additional course_id param used for quiz view.
 $mtype      = optional_param('mtype', '', PARAM_TEXT);
 $day      = optional_param('day', '', PARAM_TEXT);
 $mon      = optional_param('mon', '', PARAM_TEXT);
@@ -45,13 +131,13 @@ $year      = optional_param('year', '', PARAM_TEXT);
 $time      = optional_param('time', '', PARAM_TEXT);
 $itemid      = optional_param('Itemid', '', PARAM_TEXT);
 $lang      = optional_param('lang', '', PARAM_TEXT);
-$topic      = optional_param('topic', '', PARAM_TEXT);
-$section      = optional_param('section', '', PARAM_TEXT);
+$topic      = optional_param('topic', '', PARAM_INT);
+$section      = optional_param('section', '', PARAM_INT);
 $redirect      = optional_param('redirect', '', PARAM_TEXT); // Redirect moodle param.
 
-$auth = new auth_plugin_joomdle ();
+$auth = new auth_plugin_joomdle();
 
-$override_itemid = $auth->call_method ('getDefaultItemid');
+$override_itemid = $auth->call_method('getDefaultItemid');
 
 if ($override_itemid) {
     $itemid = $override_itemid;
@@ -61,26 +147,24 @@ if ($override_itemid) {
 $user = get_complete_user_data('username', $username);
 if (($user->auth == 'joomdle') || (!$user)) {
     if (($username != 'guest') && ((!isloggedin()) || (isguestuser()))) {
-
         /* Logged user trying to access */
-        $logged = $auth->call_method ("confirmJoomlaSession", $username, $token);
+        $logged = $auth->call_method("confirmJoomlaSession", $username, $token);
 
         if ($logged === TRUE) {
             // User is logged in Joomla.
             $user = get_complete_user_data('username', $username);
             if (!$user) {
                 if ($create_user) {
-                    $auth->create_joomdle_user ($username);
+                    $auth->create_joomdle_user($username);
                 } else {
                     /* If the user does not exists and we don't have to create it, we are done */
-                    $redirect_url = get_config ('auth_joomdle', 'joomla_url');
+                    $redirect_url = get_config('auth_joomdle', 'joomla_url');
                     redirect($redirect_url);
                 }
             }
             $user = get_complete_user_data('username', $username);
 
             if (!$user->suspended) {
-
                 // Log the user in.
                 complete_user_login($user);
 
@@ -97,19 +181,20 @@ if (($user->auth == 'joomdle') || (!$user)) {
 
 // Redirect.
 if ($use_wrapper) {
-    $redirect_url = get_config ('auth_joomdle', 'joomla_url');
-    switch ($mtype)
-    {
+    $redirect_url = get_config('auth_joomdle', 'joomla_url');
+    switch ($mtype) {
         case "event":
             $redirect_url .= "/index.php?option=com_joomdle&view=wrapper&moodle_page_type=$mtype&id=$id" .
                 "&time=$time&Itemid=$itemid";
             break;
         case "course":
             $redirect_url .= "/index.php?option=com_joomdle&view=wrapper&moodle_page_type=$mtype&id=$id&Itemid=$itemid";
-            if ($topic)
-                $redirect_url .= '&topic='.$topic;
-            if ($section)
-                $redirect_url .= '&section='.$section;
+            if ($topic) {
+                $redirect_url .= '&topic=' . $topic;
+            }
+            if ($section) {
+                $redirect_url .= '&section=' . $section;
+            }
             break;
         case "coursecategory":
             $redirect_url .= "/index.php?option=com_joomdle&view=wrapper&moodle_page_type=$mtype&id=$id&Itemid=$itemid";
@@ -139,9 +224,9 @@ if ($use_wrapper) {
                     "&course_id=$course_id&Itemid=$itemid";
             } else {
                 if ($wantsurl) {
-                    $redirect_url = urldecode ($wantsurl);
+                    $redirect_url = $wantsurl;
                 } else {
-                    $redirect_url = get_config ('auth_joomdle', 'joomla_url');
+                    $redirect_url = get_config('auth_joomdle', 'joomla_url');
                 }
             }
     }
@@ -155,14 +240,14 @@ if ($use_wrapper) {
             $redirect_url .= "/course/view.php?id=$id";
 
             if ($topic) {
-                $redirect_url .= '&topic='.$topic;
+                $redirect_url .= '&topic=' . $topic;
             }
             if ($section) {
-                $redirect_url .= '#section-'.$section;
+                $redirect_url .= '#section-' . $section;
             }
             break;
         case "coursecategory":
-            $redirect_url .= "/course/index.php?categoryid=".$id;
+            $redirect_url .= "/course/index.php?categoryid=" . $id;
             break;
         case "news":
             $redirect_url .= "/mod/forum/discuss.php?d=$id";
@@ -195,30 +280,12 @@ if ($use_wrapper) {
             if ($mtype) {
                 $redirect_url .= "/mod/$mtype/view.php?id=$id";
             } else {
-                preg_match('@^(?:https?://)?([^/]+)@i',
-                    get_config ('auth_joomdle', 'joomla_url'), $matches);
-                $host = $matches[0];
-
-                /* If not full URL, see if path/host is needed */
-                if (($wantsurl) &&
-                    (substr ($wantsurl, 0, 7) != 'http://') &&
-                    (substr ($wantsurl, 0, 8) != 'https://')) {
-                    /* If no initial slash, it is a joomla relative path. We add path */
-                    if ($wantsurl[0] != '/') {
-                        $path = parse_url (get_config ('auth_joomdle', 'joomla_url'), PHP_URL_PATH);
-                        $wantsurl = $path.'/'.$wantsurl;
-                    }
-
-                    if ($wantsurl) {
-                        $redirect_url = $host.urldecode ($wantsurl);
-                    } else {
-                        $redirect_url = get_config ('auth_joomdle', 'joomla_url');
-                    }
-                } else {
+                if ($wantsurl) {
                     $redirect_url = $wantsurl;
+                } else {
+                    $redirect_url = get_config('auth_joomdle', 'joomla_url');
                 }
             }
-
     }
     if ($redirect) {
         $redirect_url .= "&redirect=1";
@@ -226,11 +293,12 @@ if ($use_wrapper) {
 }
 
 if ($lang) {
-    $redirect_url .= '&lang='.$lang;
+    $redirect_url .= '&lang=' . $lang;
 }
 
 // Kludge to deal with Login form with no redirect set
-if (strstr ($redirect_url, 'task=user.login'))
-    $redirect_url = get_config ('auth_joomdle', 'joomla_url');
+if (strstr($redirect_url, 'task=user.login')) {
+    $redirect_url = get_config('auth_joomdle', 'joomla_url');
+}
 
 redirect($redirect_url);

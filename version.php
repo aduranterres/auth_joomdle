@@ -18,13 +18,13 @@
  * Joomdle version file
  *
  * @package    auth_joomdle
- * @copyright  2009 Qontori Pte Ltd
+ * @copyright  2009 Antonio Duran Terres
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 
-$plugin->version  = 2025103000;
+$plugin->version  = 2026071706;
 $plugin->requires = 2018120300;
 $plugin->maturity = MATURITY_STABLE;
-$plugin->release = "3.0.0";
+$plugin->release = "3.1.0";
 $plugin->component = 'auth_joomdle';

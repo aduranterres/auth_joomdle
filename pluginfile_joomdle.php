@@ -20,7 +20,7 @@
  *
  * @package    auth_joomdle
  * @copyright  2008 Petr Skoda (http://skodak.org)
- * @copyright  2009 Qontori Pte Ltd  (changes for Joomdle integration)
+ * @copyright  2009 Antonio Duran Terres  (changes for Joomdle integration)
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 

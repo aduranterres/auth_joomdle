@@ -18,7 +18,7 @@
  * Special setting for auth_joomdle that does initial setup
  *
  * @package    auth_joomdle
- * @copyright  2019 Qontori
+ * @copyright  2019 Antonio Duran Terres
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -26,11 +26,10 @@
  * Special setting for auth_joomdle that does initial setup
  *
  * @package    auth_joomdle
- * @copyright  2019 Qontori
+ * @copyright  2019 Antonio Duran Terres
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class auth_joomdle_admin_setting_configtext_initial_config extends admin_setting_configtext {
-
     /**
      * We need to set things up if they are not yet
      *
@@ -38,7 +37,6 @@ class auth_joomdle_admin_setting_configtext_initial_config extends admin_setting
      * @return string Empty when no errors.
      */
     public function write_setting($data) {
-
         global $CFG;
 
         // Joomdle initial config.
@@ -62,7 +60,7 @@ class auth_joomdle_admin_setting_configtext_initial_config extends admin_setting
         return parent::write_setting($data);
     }
 
-    private function initial_config_already_done () {
+    private function initial_config_already_done() {
         global $CFG, $DB;
 
         // We need to check if config was already done.

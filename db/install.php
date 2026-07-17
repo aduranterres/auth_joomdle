@@ -16,7 +16,7 @@
 
 /**
  * @package    auth_joomdle
- * @copyright  2009 Qontori Pte Ltd
+ * @copyright  2009 Antonio Duran Terres
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -38,9 +38,9 @@ class joomdle_moodle_config {
         global $CFG;
 
         if ($protocol == 'xmlrpc') {
-            $this->enable_xmlrpc ();
+            $this->enable_xmlrpc();
         } else if ($protocol == 'rest') {
-            $this->enable_rest ();
+            $this->enable_rest();
         }
     }
 
@@ -113,9 +113,12 @@ class joomdle_moodle_config {
         // Create new role.
         $role = $DB->get_record('role', array('shortname' => 'joomdlews'));
         if (!$role) {
-            $roleid = create_role ('Joomdle Web Services', 'joomdlews',
-                'Role to give required capabilities to the Joomdle Connector user');
-            set_role_contextlevels ($roleid, array (CONTEXT_SYSTEM));
+            $roleid = create_role(
+                'Joomdle Web Services',
+                'joomdlews',
+                'Role to give required capabilities to the Joomdle Connector user'
+            );
+            set_role_contextlevels($roleid, array(CONTEXT_SYSTEM));
         } else {
             $roleid = $role->id;
         }
@@ -131,17 +134,36 @@ class joomdle_moodle_config {
         $context = context_system::instance();
         assign_capability('webservice/rest:use', CAP_ALLOW, $roleid, $context->id, true);
 
-        // Enable forums read.
-        $context = context_system::instance();
+        // Enable required capabilities for Joomdle work.
         assign_capability('mod/forum:viewdiscussion', CAP_ALLOW, $roleid, $context->id, true);
-
-        // Enable calendar manage.
-        $context = context_system::instance();
         assign_capability('moodle/calendar:manageentries', CAP_ALLOW, $roleid, $context->id, true);
+        assign_capability('moodle/user:create', CAP_ALLOW, $roleid, $context->id, true);
+        assign_capability('moodle/user:delete', CAP_ALLOW, $roleid, $context->id, true);
+        assign_capability('moodle/user:viewdetails', CAP_ALLOW, $roleid, $context->id, true);
+        assign_capability('moodle/user:viewalldetails', CAP_ALLOW, $roleid, $context->id, true);
+        assign_capability('moodle/course:view', CAP_ALLOW, $roleid, $context->id, true);
+        assign_capability('moodle/category:viewcourselist', CAP_ALLOW, $roleid, $context->id, true);
+        assign_capability('moodle/course:viewparticipants', CAP_ALLOW, $roleid, $context->id, true);
+        assign_capability('moodle/grade:viewall', CAP_ALLOW, $roleid, $context->id, true);
+        assign_capability('moodle/calendar:manageentries', CAP_ALLOW, $roleid, $context->id, true);
+        assign_capability('moodle/site:configview', CAP_ALLOW, $roleid, $context->id, true);
+        assign_capability('moodle/category:viewhiddencategories', CAP_ALLOW, $roleid, $context->id, true);
+        assign_capability('moodle/role:review', CAP_ALLOW, $roleid, $context->id, true);
+        assign_capability('moodle/course:enrolreview', CAP_ALLOW, $roleid, $context->id, true);
+        assign_capability('enrol/manual:enrol', CAP_ALLOW, $roleid, $context->id, true);
+        assign_capability('enrol/manual:unenrol', CAP_ALLOW, $roleid, $context->id, true);
+        assign_capability('enrol/manual:manage', CAP_ALLOW, $roleid, $context->id, true);
+        assign_capability('moodle/cohort:manage', CAP_ALLOW, $roleid, $context->id, true);
+        assign_capability('moodle/grade:managegradingforms', CAP_ALLOW, $roleid, $context->id, true);
+        assign_capability('moodle/course:managegroups', CAP_ALLOW, $roleid, $context->id, true);
+        assign_capability('moodle/badges:viewotherbadges', CAP_ALLOW, $roleid, $context->id, true);
+        assign_capability('moodle/calendar:manageentries', CAP_ALLOW, $roleid, $context->id, true);
+        assign_capability('report/completion:view', CAP_ALLOW, $roleid, $context->id, true);
+        assign_capability('moodle/user:update', CAP_ALLOW, $roleid, $context->id, true);
 
         // Add user to role.
         $user = get_complete_user_data('username', 'joomdle_connector');
-        role_assign ($roleid, $user->id, $context->id);
+        role_assign($roleid, $user->id, $context->id);
     }
 
     public function create_webservice() {
@@ -153,24 +175,27 @@ class joomdle_moodle_config {
         $webservicemanager = new webservice;
 
         // Get Joomdle web service.
-        $service = $webservicemanager->get_external_service_by_shortname ('joomdle');
+        $service = $webservicemanager->get_external_service_by_shortname('joomdle');
 
         if ($service) {
             return;
         }
 
         // Check if there is already a service with name=Joomdle that could conflict because of index.
-        $service = $DB->get_record('external_services',
-            array('name' => 'Joomdle'), '*');
+        $service = $DB->get_record(
+            'external_services',
+            array('name' => 'Joomdle'),
+            '*'
+        );
 
         if ($service) {
             // Change shortname of this service to joomdle so that we can use it.
             $service->shortname = 'joomdle';
-            $webservicemanager->update_external_service ($service);
+            $webservicemanager->update_external_service($service);
             return;
         }
 
-        $servicedata = new stdClass ();
+        $servicedata = new stdClass();
         $servicedata->name = 'Joomdle';
         $servicedata->shortname = 'joomdle';
         $servicedata->enabled = 1;
@@ -198,7 +223,7 @@ class joomdle_moodle_config {
         $webservicemanager = new webservice;
 
         // Get Joomdle web service.
-        $service = $webservicemanager->get_external_service_by_shortname ('joomdle');
+        $service = $webservicemanager->get_external_service_by_shortname('joomdle');
 
         if (!$service) {
             return;
@@ -211,10 +236,14 @@ class joomdle_moodle_config {
         // foreach ($functions as $name => $function) {
         foreach ($functions as $function) {
             // Make sure the function is not there yet.
-            if (!$webservicemanager->service_function_exists($function->name,
-                $service->id)) {
+            if (!$webservicemanager->service_function_exists(
+                $function->name,
+                $service->id
+            )) {
                 $webservicemanager->add_external_function_to_service(
-                    $function->name, $service->id);
+                    $function->name,
+                    $service->id
+                );
             }
         }
     }
@@ -227,7 +256,7 @@ class joomdle_moodle_config {
         $webservicemanager = new webservice;
 
         // Get Joomdle web service.
-        $service = $webservicemanager->get_external_service_by_shortname ('joomdle');
+        $service = $webservicemanager->get_external_service_by_shortname('joomdle');
 
         if (!$service) {
             return;
@@ -259,7 +288,7 @@ class joomdle_moodle_config {
         }
 
         // Get Joomdle web service.
-        $selectedservice = $webservicemanager->get_external_service_by_shortname ('joomdle');
+        $selectedservice = $webservicemanager->get_external_service_by_shortname('joomdle');
 
         if (!$selectedservice) {
             return;
@@ -269,9 +298,11 @@ class joomdle_moodle_config {
         if ($selectedservice->restrictedusers) {
             $restricteduser = $webservicemanager->get_ws_authorised_user($selectedservice->id, $user->id);
             if (empty($restricteduser)) {
-                $allowuserurl = new moodle_url('/' . $CFG->admin . '/webservice/service_users.php',
-                    array('id' => $selectedservice->id));
-                $allowuserlink = html_writer::tag('a', $selectedservice->name , array('href' => $allowuserurl));
+                $allowuserurl = new moodle_url(
+                    '/' . $CFG->admin . '/webservice/service_users.php',
+                    array('id' => $selectedservice->id)
+                );
+                $allowuserlink = html_writer::tag('a', $selectedservice->name, array('href' => $allowuserurl));
                 $errormsg = $OUTPUT->notification(get_string('usernotallowed', 'webservice', $allowuserlink));
             }
         }
@@ -283,9 +314,14 @@ class joomdle_moodle_config {
 
         // Process the creation.
         if (empty($errormsg)) {
-            $this->external_generate_token(EXTERNAL_TOKEN_PERMANENT, $selectedservice->id,
-                $user->id, context_system::instance(),
-                0, '');
+            $this->external_generate_token(
+                EXTERNAL_TOKEN_PERMANENT,
+                $selectedservice->id,
+                $user->id,
+                context_system::instance(),
+                0,
+                ''
+            );
         }
     }
 
