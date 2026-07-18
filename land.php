@@ -33,8 +33,7 @@ require_once($CFG->dirroot . '/auth/joomdle/auth.php');
  * @param string $baseurl Allowed base URL.
  * @return bool
  */
-function auth_joomdle_same_origin($url, $baseurl)
-{
+function auth_joomdle_same_origin($url, $baseurl) {
     $urlparts = parse_url($url);
     $baseparts = parse_url($baseurl);
 
@@ -63,8 +62,7 @@ function auth_joomdle_same_origin($url, $baseurl)
  * @param string $wantsurl Incoming wantsurl parameter.
  * @return string Normalised absolute URL, or empty string when invalid.
  */
-function auth_joomdle_clean_wantsurl($wantsurl)
-{
+function auth_joomdle_clean_wantsurl($wantsurl) {
     global $CFG;
 
     $wantsurl = trim($wantsurl);
@@ -115,10 +113,10 @@ function auth_joomdle_clean_wantsurl($wantsurl)
 $PAGE->set_context(context_system::instance());
 
 // Grab the GET params.
-$token         = optional_param('token',  '',  PARAM_TEXT);
-$username = optional_param('username',   '',   PARAM_TEXT);
+$token         = optional_param('token', '', PARAM_TEXT);
+$username = optional_param('username', '', PARAM_TEXT);
 $username = strtolower($username);
-$create_user = optional_param('create_user', '',     PARAM_TEXT);
+$create_user = optional_param('create_user', '', PARAM_TEXT);
 $wantsurl      = optional_param('wantsurl', '', PARAM_RAW_TRIMMED);
 $wantsurl = auth_joomdle_clean_wantsurl($wantsurl);
 $use_wrapper      = optional_param('use_wrapper', '', PARAM_TEXT);
@@ -150,7 +148,7 @@ if (($user->auth == 'joomdle') || (!$user)) {
         /* Logged user trying to access */
         $logged = $auth->call_method("confirmJoomlaSession", $username, $token);
 
-        if ($logged === TRUE) {
+        if ($logged === true) {
             // User is logged in Joomla.
             $user = get_complete_user_data('username', $username);
             if (!$user) {

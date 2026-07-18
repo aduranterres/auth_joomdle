@@ -23,13 +23,13 @@
  */
 
 require_once(dirname(dirname(dirname(__FILE__))) . '/config.php');
-require_once($CFG->dirroot.'/auth/joomdle/auth.php');
+require_once($CFG->dirroot . '/auth/joomdle/auth.php');
 
 // It gives a warning if no context set, I guess it does nor matter which we use.
 $PAGE->set_context(context_system::instance());
 
-$joomlaurl = get_config ('auth_joomdle', 'joomla_url');
-$fileurl = $joomlaurl.'/components/com_joomdle/connection_test.php';
+$joomlaurl = get_config('auth_joomdle', 'joomla_url');
+$fileurl = $joomlaurl . '/components/com_joomdle/connection_test.php';
 
-$auth = new auth_plugin_joomdle ();
-echo $auth->get_file ($fileurl);
+$auth = new auth_plugin_joomdle();
+echo $auth->get_file($fileurl);

@@ -22,7 +22,13 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+/**
+ * Returns the Joomla wrapper URL for a Moodle course.
+ *
+ * @param stdClass $course The Moodle course object.
+ * @return string The Joomla wrapper URL.
+ */
 function joomdle_wrapper_course_get_url($course) {
-    $joomlaurl = get_config ('auth_joomdle', 'joomla_url');
-    return $joomlaurl . "/index.php?option=com_joomdle&view=wrapper&moodle_page_type=course&id=".$course->id;
+    $joomlaurl = get_config('auth_joomdle', 'joomla_url');
+    return $joomlaurl . "/index.php?option=com_joomdle&view=wrapper&moodle_page_type=course&id=" . $course->id;
 }

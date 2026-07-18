@@ -15,6 +15,8 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
+ * Installation support for the Joomdle authentication plugin.
+ *
  * @package    auth_joomdle
  * @copyright  2009 Antonio Duran Terres
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -24,19 +26,35 @@ use core_external\util;
 
 class_alias(\core_external\util::class, 'external_util');
 
+/**
+ * Performs the Joomdle authentication plugin installation.
+ *
+ * @return void
+ */
 function xmldb_auth_joomdle_install() {
-    global $CFG, $DB;
 }
 
 // Setup is called from admin_setting_configtext_initial_config.
+/**
+ * Configures the Moodle resources required by Joomdle.
+ */
 class joomdle_moodle_config {
+    /**
+     * Enables web services in Moodle.
+     *
+     * @return void
+     */
     public function enable_web_services() {
         set_config('enablewebservices', 1);
     }
 
+    /**
+     * Enables the selected web service protocol.
+     *
+     * @param string $protocol The protocol to enable.
+     * @return void
+     */
     public function enable_protocol($protocol) {
-        global $CFG;
-
         if ($protocol == 'xmlrpc') {
             $this->enable_xmlrpc();
         } else if ($protocol == 'rest') {
@@ -44,46 +62,61 @@ class joomdle_moodle_config {
         }
     }
 
+    /**
+     * Enables the XML-RPC web service protocol when available.
+     *
+     * @return void
+     */
     public function enable_xmlrpc() {
         global $CFG;
 
-        // XMLRPC not available from Moodle 4.1
+        // XML-RPC is not available from Moodle 4.1.
         if ($CFG->version >= 20221128) {
             return;
         }
 
-        $active_webservices = empty($CFG->webserviceprotocols) ? array() : explode(',', $CFG->webserviceprotocols);
+        $activewebservices = empty($CFG->webserviceprotocols) ? [] : explode(',', $CFG->webserviceprotocols);
 
         $webservice = 'xmlrpc';
-        if (!in_array($webservice, $active_webservices)) {
-            $active_webservices[] = $webservice;
-            $active_webservices = array_unique($active_webservices);
+        if (!in_array($webservice, $activewebservices)) {
+            $activewebservices[] = $webservice;
+            $activewebservices = array_unique($activewebservices);
 
-            set_config('webserviceprotocols', implode(',', $active_webservices));
+            set_config('webserviceprotocols', implode(',', $activewebservices));
         }
     }
 
+    /**
+     * Enables the REST web service protocol.
+     *
+     * @return void
+     */
     public function enable_rest() {
         global $CFG;
 
-        $active_webservices = empty($CFG->webserviceprotocols) ? array() : explode(',', $CFG->webserviceprotocols);
+        $activewebservices = empty($CFG->webserviceprotocols) ? [] : explode(',', $CFG->webserviceprotocols);
 
         $webservice = 'rest';
-        if (!in_array($webservice, $active_webservices)) {
-            $active_webservices[] = $webservice;
-            $active_webservices = array_unique($active_webservices);
+        if (!in_array($webservice, $activewebservices)) {
+            $activewebservices[] = $webservice;
+            $activewebservices = array_unique($activewebservices);
 
-            set_config('webserviceprotocols', implode(',', $active_webservices));
+            set_config('webserviceprotocols', implode(',', $activewebservices));
         }
     }
 
+    /**
+     * Creates the Joomdle connector user when it does not exist.
+     *
+     * @return void
+     */
     public function create_user() {
-        global $CFG, $DB;
+        global $CFG;
 
         require_once($CFG->dirroot . '/lib/moodlelib.php');
         require_once($CFG->dirroot . '/user/lib.php');
 
-        // First check user does not exist already
+        // First check that the user does not already exist.
         $user = get_complete_user_data('username', 'joomdle_connector');
         if ($user) {
             return;
@@ -107,25 +140,30 @@ class joomdle_moodle_config {
         update_internal_user_password($user, $password);
     }
 
+    /**
+     * Creates the Joomdle role and assigns its required capabilities.
+     *
+     * @return void
+     */
     public function add_user_capability() {
         global $CFG, $DB;
 
         // Create new role.
-        $role = $DB->get_record('role', array('shortname' => 'joomdlews'));
+        $role = $DB->get_record('role', ['shortname' => 'joomdlews']);
         if (!$role) {
             $roleid = create_role(
                 'Joomdle Web Services',
                 'joomdlews',
                 'Role to give required capabilities to the Joomdle Connector user'
             );
-            set_role_contextlevels($roleid, array(CONTEXT_SYSTEM));
+            set_role_contextlevels($roleid, [CONTEXT_SYSTEM]);
         } else {
             $roleid = $role->id;
         }
 
         if ($CFG->version < 20221128) {
             // Enable xmlrpc capability for role.
-            // XMLRPC not available from Moodle 4.1
+            // XML-RPC is not available from Moodle 4.1.
             $context = context_system::instance();
             assign_capability('webservice/xmlrpc:use', CAP_ALLOW, $roleid, $context->id, true);
         }
@@ -166,13 +204,18 @@ class joomdle_moodle_config {
         role_assign($roleid, $user->id, $context->id);
     }
 
+    /**
+     * Creates the Joomdle external web service when it does not exist.
+     *
+     * @return void
+     */
     public function create_webservice() {
         global $CFG, $DB;
 
         require_once($CFG->dirroot . '/webservice/lib.php');
 
         // Check that it does not exist yet.
-        $webservicemanager = new webservice;
+        $webservicemanager = new webservice();
 
         // Get Joomdle web service.
         $service = $webservicemanager->get_external_service_by_shortname('joomdle');
@@ -184,7 +227,7 @@ class joomdle_moodle_config {
         // Check if there is already a service with name=Joomdle that could conflict because of index.
         $service = $DB->get_record(
             'external_services',
-            array('name' => 'Joomdle'),
+            ['name' => 'Joomdle'],
             '*'
         );
 
@@ -205,22 +248,27 @@ class joomdle_moodle_config {
         $servicedata->requiredcapability = '';
         $servicedata->id = 0;
 
-        $webservicemanager = new webservice;
+        $webservicemanager = new webservice();
 
         $servicedata->id = $webservicemanager->add_external_service($servicedata);
-        $params = array(
-            'objectid' => $servicedata->id
-        );
+        $params = [
+            'objectid' => $servicedata->id,
+        ];
         $event = \core\event\webservice_service_created::create($params);
         $event->trigger();
     }
 
+    /**
+     * Adds the Joomdle external functions to its web service.
+     *
+     * @return void
+     */
     public function add_functions() {
         global $CFG, $DB;
 
         require_once($CFG->dirroot . '/webservice/lib.php');
 
-        $webservicemanager = new webservice;
+        $webservicemanager = new webservice();
 
         // Get Joomdle web service.
         $service = $webservicemanager->get_external_service_by_shortname('joomdle');
@@ -233,13 +281,14 @@ class joomdle_moodle_config {
         $select = "name LIKE 'joomdle_%'";
         $functions = $DB->get_records_select('external_functions', $select);
 
-        // foreach ($functions as $name => $function) {
         foreach ($functions as $function) {
             // Make sure the function is not there yet.
-            if (!$webservicemanager->service_function_exists(
-                $function->name,
-                $service->id
-            )) {
+            if (
+                !$webservicemanager->service_function_exists(
+                    $function->name,
+                    $service->id
+                )
+            ) {
                 $webservicemanager->add_external_function_to_service(
                     $function->name,
                     $service->id
@@ -248,12 +297,17 @@ class joomdle_moodle_config {
         }
     }
 
+    /**
+     * Authorises the Joomdle connector user for the web service.
+     *
+     * @return void
+     */
     public function add_user_to_service() {
-        global $CFG, $DB;
+        global $CFG;
 
         require_once($CFG->dirroot . '/webservice/lib.php');
 
-        $webservicemanager = new webservice;
+        $webservicemanager = new webservice();
 
         // Get Joomdle web service.
         $service = $webservicemanager->get_external_service_by_shortname('joomdle');
@@ -274,12 +328,17 @@ class joomdle_moodle_config {
         $webservicemanager->add_ws_authorised_user($serviceuser);
     }
 
+    /**
+     * Creates a permanent token for the Joomdle connector user.
+     *
+     * @return void
+     */
     public function create_token() {
-        global $CFG, $DB;
+        global $CFG, $OUTPUT;
 
         require_once($CFG->dirroot . '/webservice/lib.php');
 
-        $webservicemanager = new webservice;
+        $webservicemanager = new webservice();
 
         $user = get_complete_user_data('username', 'joomdle_connector');
 
@@ -300,15 +359,15 @@ class joomdle_moodle_config {
             if (empty($restricteduser)) {
                 $allowuserurl = new moodle_url(
                     '/' . $CFG->admin . '/webservice/service_users.php',
-                    array('id' => $selectedservice->id)
+                    ['id' => $selectedservice->id]
                 );
-                $allowuserlink = html_writer::tag('a', $selectedservice->name, array('href' => $allowuserurl));
+                $allowuserlink = html_writer::tag('a', $selectedservice->name, ['href' => $allowuserurl]);
                 $errormsg = $OUTPUT->notification(get_string('usernotallowed', 'webservice', $allowuserlink));
             }
         }
 
         // Check if the user is deleted. unconfirmed, suspended or guest.
-        if ($user->id == $CFG->siteguest or $user->deleted or !$user->confirmed or $user->suspended) {
+        if ($user->id == $CFG->siteguest || $user->deleted || !$user->confirmed || $user->suspended) {
             throw new moodle_exception('forbiddenwsuser', 'webservice');
         }
 
@@ -325,8 +384,25 @@ class joomdle_moodle_config {
         }
     }
 
-    /* Copy of core function in lib/externallib.php to avoid testing problems when requiring that file */
-    function external_generate_token($tokentype, $serviceorid, $userid, $contextorid, $validuntil = 0, $iprestriction = '') {
+    /**
+     * Generates a token without requiring the core external library.
+     *
+     * @param int $tokentype The token type.
+     * @param int|string|stdClass $serviceorid The service identifier, name, or object.
+     * @param int $userid The user identifier.
+     * @param int|context $contextorid The context identifier or object.
+     * @param int $validuntil The token expiry timestamp, or zero for no expiry.
+     * @param string $iprestriction The IP restriction.
+     * @return string The generated token.
+     */
+    public function external_generate_token(
+        $tokentype,
+        $serviceorid,
+        $userid,
+        $contextorid,
+        $validuntil = 0,
+        $iprestriction = ''
+    ) {
         if (is_numeric($serviceorid)) {
             $service = util::get_service_by_id($serviceorid);
         } else if (is_string($serviceorid)) {

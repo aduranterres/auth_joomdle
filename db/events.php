@@ -25,90 +25,90 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$observers = array(
+$observers = [
 
-    array(
+    [
         'eventname' => '\core\event\user_created',
         'callback' => 'auth_joomdle_handler::user_created',
-        'includefile' => '/auth/joomdle/locallib.php'
-    ),
+        'includefile' => '/auth/joomdle/locallib.php',
+    ],
 
-    array(
+    [
         'eventname' => '\core\event\user_updated',
         'callback' => 'auth_joomdle_handler::user_updated',
-        'includefile' => '/auth/joomdle/locallib.php'
-    ),
+        'includefile' => '/auth/joomdle/locallib.php',
+    ],
 
-    array(
+    [
         'eventname' => '\core\event\user_deleted',
         'callback' => 'auth_joomdle_handler::user_deleted',
-        'includefile' => '/auth/joomdle/locallib.php'
-    ),
+        'includefile' => '/auth/joomdle/locallib.php',
+    ],
 
-    array(
+    [
         'eventname' => '\core\event\course_created',
         'callback' => 'auth_joomdle_handler::course_created',
-        'includefile' => '/auth/joomdle/locallib.php'
-    ),
+        'includefile' => '/auth/joomdle/locallib.php',
+    ],
 
-    array(
+    [
         'eventname' => '\core\event\course_updated',
         'callback' => 'auth_joomdle_handler::course_updated',
-        'includefile' => '/auth/joomdle/locallib.php'
-    ),
+        'includefile' => '/auth/joomdle/locallib.php',
+    ],
 
-    array(
+    [
         'eventname' => '\core\event\course_deleted',
         'callback' => 'auth_joomdle_handler::course_deleted',
-        'includefile' => '/auth/joomdle/locallib.php'
-    ),
+        'includefile' => '/auth/joomdle/locallib.php',
+    ],
 
-    array(
+    [
         'eventname' => '\core\event\course_restored',
         'callback' => 'auth_joomdle_handler::course_restored',
-        'includefile' => '/auth/joomdle/locallib.php'
-    ),
+        'includefile' => '/auth/joomdle/locallib.php',
+    ],
 
-    array(
+    [
         'eventname' => '\core\event\role_assigned',
         'callback' => 'auth_joomdle_handler::role_assigned',
-        'includefile' => '/auth/joomdle/locallib.php'
-    ),
+        'includefile' => '/auth/joomdle/locallib.php',
+    ],
 
-    array(
+    [
         'eventname' => '\core\event\role_unassigned',
         'callback' => 'auth_joomdle_handler::role_unassigned',
-        'includefile' => '/auth/joomdle/locallib.php'
-    ),
+        'includefile' => '/auth/joomdle/locallib.php',
+    ],
 
-    array(
+    [
         'eventname' => '\mod_quiz\event\attempt_submitted',
         'callback' => 'auth_joomdle_handler::attempt_submitted',
         'includefile' => '/auth/joomdle/locallib.php',
-        'internal' => false
-    ),
+        'internal' => false,
+    ],
 
-    array(
+    [
         'eventname' => '\core\event\course_module_created',
         'callback' => 'auth_joomdle_handler::course_module_created',
-        'includefile' => '/auth/joomdle/locallib.php'
-    ),
+        'includefile' => '/auth/joomdle/locallib.php',
+    ],
 
-    array(
+    [
         'eventname' => '\core\event\course_module_deleted',
         'callback' => 'auth_joomdle_handler::course_module_deleted',
-        'includefile' => '/auth/joomdle/locallib.php'
-    ),
+        'includefile' => '/auth/joomdle/locallib.php',
+    ],
 
-    array(
+    [
         'eventname' => '\core\event\course_module_updated',
         'callback' => 'auth_joomdle_handler::course_module_updated',
-        'includefile' => '/auth/joomdle/locallib.php'
-    ),
+        'includefile' => '/auth/joomdle/locallib.php',
+    ],
 
-    array(
+    [
         'eventname' => '\core\event\course_completed',
         'callback' => 'auth_joomdle_handler::course_completed',
-        'includefile' => '/auth/joomdle/locallib.php'
-    ),
-);
+        'includefile' => '/auth/joomdle/locallib.php',
+    ],
+];

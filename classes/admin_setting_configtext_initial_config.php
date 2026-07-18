@@ -41,35 +41,40 @@ class auth_joomdle_admin_setting_configtext_initial_config extends admin_setting
 
         // Joomdle initial config.
 
-        require_once($CFG->dirroot.'/auth/joomdle/db/install.php');
-        require_once($CFG->dirroot.'/lib/upgradelib.php');
+        require_once($CFG->dirroot . '/auth/joomdle/db/install.php');
+        require_once($CFG->dirroot . '/lib/upgradelib.php');
 
-        if (!$this->initial_config_already_done ()) {
-            $joomdle_config = new joomdle_moodle_config ();
-            $joomdle_config->enable_web_services ();
-            $joomdle_config->create_user ();
-            $joomdle_config->add_user_capability ();
-            $joomdle_config->create_webservice ();
-            $joomdle_config->add_functions ();
-            $joomdle_config->add_user_to_service ();
-            $joomdle_config->create_token ();
+        if (!$this->initial_config_already_done()) {
+            $joomdleconfig = new joomdle_moodle_config();
+            $joomdleconfig->enable_web_services();
+            $joomdleconfig->create_user();
+            $joomdleconfig->add_user_capability();
+            $joomdleconfig->create_webservice();
+            $joomdleconfig->add_functions();
+            $joomdleconfig->add_user_to_service();
+            $joomdleconfig->create_token();
 
-            external_update_descriptions ('auth_joomdle');
+            external_update_descriptions('auth_joomdle');
         }
 
         return parent::write_setting($data);
     }
 
+    /**
+     * Checks whether the initial Joomdle configuration has been completed.
+     *
+     * @return bool True when the Joomdle web service already exists.
+     */
     private function initial_config_already_done() {
-        global $CFG, $DB;
+        global $CFG;
 
         // We need to check if config was already done.
         // We check the presence of Joomdle service.
 
         require_once($CFG->dirroot . '/webservice/lib.php');
 
-        $webservicemanager = new webservice;
-        $service = $webservicemanager->get_external_service_by_shortname ('joomdle');
+        $webservicemanager = new webservice();
+        $service = $webservicemanager->get_external_service_by_shortname('joomdle');
 
         if ($service) {
             return true;

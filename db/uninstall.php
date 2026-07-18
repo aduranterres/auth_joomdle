@@ -15,56 +15,78 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
+ * Uninstallation support for the Joomdle authentication plugin.
+ *
  * @package    auth_joomdle
  * @copyright  2009 Antonio Duran Terres
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-
+/**
+ * Removes the Moodle data created by the Joomdle authentication plugin.
+ *
+ * @return void
+ */
 function xmldb_auth_joomdle_uninstall() {
-    global $CFG, $DB;
-
-    $joomdle_deconfig = new joomdle_moodle_deconfig ();
-    $joomdle_deconfig->delete_user ();
-    $joomdle_deconfig->delete_role ();
-    $joomdle_deconfig->delete_webservice ();
+    $joomdledeconfig = new joomdle_moodle_deconfig();
+    $joomdledeconfig->delete_user();
+    $joomdledeconfig->delete_role();
+    $joomdledeconfig->delete_webservice();
 }
 
+/**
+ * Removes the Moodle resources created for the Joomdle integration.
+ */
 class joomdle_moodle_deconfig {
+    /**
+     * Deletes the Joomdle connector user.
+     *
+     * @return void
+     */
     public function delete_user() {
-        global $CFG, $DB;
+        global $CFG;
 
         require_once($CFG->dirroot . '/auth/joomdle/auth.php');
 
-        $auth_joomdle = new auth_plugin_joomdle ();
-        $auth_joomdle->delete_user ('joomdle_connector');
+        $authjoomdle = new auth_plugin_joomdle();
+        $authjoomdle->delete_user('joomdle_connector');
     }
 
+    /**
+     * Deletes the Joomdle web service role.
+     *
+     * @return void
+     */
     public function delete_role() {
-        global $CFG, $DB;
+        global $DB;
 
-        $conditions = array ('shortname' => 'joomdlews');
+        $conditions = ['shortname' => 'joomdlews'];
         $role = $DB->get_record('role', $conditions);
 
         if (!$role) {
             return;
         }
 
-        delete_role ($role->id);
+        delete_role($role->id);
     }
 
+    /**
+     * Deletes the Joomdle external web service.
+     *
+     * @return void
+     */
     public function delete_webservice() {
-        global $CFG, $DB;
+        global $CFG;
 
         require_once($CFG->dirroot . '/webservice/lib.php');
 
-        $webservicemanager = new webservice;
-        $servicedata = $webservicemanager->get_external_service_by_shortname ('joomdle');
+        $webservicemanager = new webservice();
+        $servicedata = $webservicemanager->get_external_service_by_shortname('joomdle');
 
         $webservicemanager->delete_service($servicedata->id);
-        $params = array(
-            'objectid' => $servicedata->id
-        );
+        $params = [
+            'objectid' => $servicedata->id,
+        ];
         $event = \core\event\webservice_service_deleted::create($params);
         $event->add_record_snapshot('external_services', $service);
         $event->trigger();

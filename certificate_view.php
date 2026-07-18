@@ -35,19 +35,19 @@ $action = optional_param('action', '', PARAM_ALPHA);
 if (! $cm = get_coursemodule_from_id('certificate', $id)) {
     error('Course Module ID was incorrect');
 }
-if (! $course = $DB->get_record('course', array('id' => $cm->course))) {
+if (! $course = $DB->get_record('course', ['id' => $cm->course])) {
     error('course is misconfigured');
 }
-if (! $certificate = $DB->get_record('certificate', array('id' => $cm->instance))) {
+if (! $certificate = $DB->get_record('certificate', ['id' => $cm->instance])) {
     error('course module is incorrect');
 }
 
-$token         = optional_param('token',  '',  PARAM_TEXT);
-$username = optional_param('username',   '',   PARAM_TEXT);
-$username = strtolower ($username);
+$token         = optional_param('token', '', PARAM_TEXT);
+$username = optional_param('username', '', PARAM_TEXT);
+$username = strtolower($username);
 
 $auth = new auth_plugin_joomdle();
-$logged = $auth->call_method ("confirmJoomlaSession", $username, $token);
+$logged = $auth->call_method("confirmJoomlaSession", $username, $token);
 
 if (!$logged) {
     return;
@@ -65,20 +65,20 @@ $completion = new completion_info($course);
 $completion->set_module_viewed($cm);
 
 // Initialize $PAGE, compute blocks.
-$PAGE->set_url('/mod/certificate/view.php', array('id' => $cm->id));
+$PAGE->set_url('/mod/certificate/view.php', ['id' => $cm->id]);
 $PAGE->set_context($context);
 $PAGE->set_cm($cm);
 
 // Get previous certrecord.
 $sql = "SELECT MAX(timecreated) AS latest " .
        "FROM {certificate_issues} " .
-       "WHERE userid = '$USER->id' ".
+       "WHERE userid = '$USER->id' " .
        "AND certificateid = '$certificate->id'";
 if ($record = $DB->get_record_sql($sql)) {
     $latest = $record->latest;
 }
-$certrecord = $DB->get_record('certificate_issues', array('certificateid' => $certificate->id,
-            'userid' => $USER->id, 'timecreated' => $latest));
+$certrecord = $DB->get_record('certificate_issues', ['certificateid' => $certificate->id,
+            'userid' => $USER->id, 'timecreated' => $latest]);
 $type = $certificate->certificatetype;
 
 // Load some strings.
@@ -87,19 +87,19 @@ $strgetcertificate = get_string('getcertificate', 'certificate');
 $strgrade = get_string('grade', 'certificate');
 $strcoursegrade = get_string('coursegrade', 'certificate');
 $strcredithours = get_string('credithours', 'certificate');
-$filename = clean_filename($certificate->name.'.pdf');
+$filename = clean_filename($certificate->name . '.pdf');
 
 // Load the specific certificatetype.
 require("$CFG->dirroot/mod/certificate/type/$certificate->certificatetype/certificate.php");
 
 if (empty($action)) {
     view_header($course, $certificate, $cm);
-    $link = new moodle_url('/mod/certificate/view.php?id='.$cm->id.'&action=get');
-    echo '<p align="center">'.get_string('viewed', 'certificate').'<br />'.userdate($certrecord->certdate).'</p>';
+    $link = new moodle_url('/mod/certificate/view.php?id=' . $cm->id . '&action=get');
+    echo '<p align="center">' . get_string('viewed', 'certificate') . '<br />' . userdate($certrecord->certdate) . '</p>';
     echo '<center>';
     $linkname = $strreviewcertificate;
     $button = new single_button($link, $linkname);
-    $button->add_action(new popup_action('click', $link, 'view'.$cm->id, array('height' => 600, 'width' => 800)));
+    $button->add_action(new popup_action('click', $link, 'view' . $cm->id, ['height' => 600, 'width' => 800]));
     echo $OUTPUT->render($button);
     echo '</center>';
     echo $OUTPUT->footer($course);
@@ -111,7 +111,7 @@ if ($action) {
     if ($certificate->savecert == 1) {
         // Pdf contents are now in $filecontents as a string.
         $filecontents = $pdf->Output('', 'S');
-        $filename = clean_filename($certificate->name.'.pdf');
+        $filename = clean_filename($certificate->name . '.pdf');
         certificate_save_pdf($filecontents, $certrecord->id, $filename, $context->id);
     }
     if ($certificate->delivery == 0) {

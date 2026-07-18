@@ -17,24 +17,24 @@
 /**
  * Handles viewing a customcert.
  *
- * @package    mod_customcert
+ * @package    auth_joomdle
  * @copyright  2013 Mark Nelson <markn@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 require_once('../../config.php');
-require_once( '../../auth/joomdle/auth.php');
+require_once('../../auth/joomdle/auth.php');
 
 
 $id = required_param('id', PARAM_INT);
 $action = optional_param('action', '', PARAM_ALPHA);
-$token         = optional_param('token',  '',  PARAM_TEXT);
-$username = optional_param('username',   '',   PARAM_TEXT);
+$token         = optional_param('token', '', PARAM_TEXT);
+$username = optional_param('username', '', PARAM_TEXT);
 
-$username = strtolower ($username);
+$username = strtolower($username);
 
 $auth = new auth_plugin_joomdle();
-$logged = $auth->call_method ("confirmJoomlaSession", $username, $token);
+$logged = $auth->call_method("confirmJoomlaSession", $username, $token);
 
 if (!$logged) {
     return;
@@ -44,31 +44,31 @@ $USER = get_complete_user_data('username', $username);
 complete_user_login($USER);
 
 $cm = get_coursemodule_from_id('customcert', $id, 0, false, MUST_EXIST);
-$course = $DB->get_record('course', array('id' => $cm->course), '*', MUST_EXIST);
+$course = $DB->get_record('course', ['id' => $cm->course], '*', MUST_EXIST);
 
 require_login($course->id, true, $cm);
 $context = context_module::instance($cm->id);
 require_capability('mod/customcert:view', $context);
 
-$customcert = $DB->get_record('customcert', array('id' => $cm->instance), '*', MUST_EXIST);
-$template = $DB->get_record('customcert_templates', array('id' => $customcert->templateid), '*', MUST_EXIST);
+$customcert = $DB->get_record('customcert', ['id' => $cm->instance], '*', MUST_EXIST);
+$template = $DB->get_record('customcert_templates', ['id' => $customcert->templateid], '*', MUST_EXIST);
 
 $context = context_module::instance($cm->id);
 
 // Initialize $PAGE, compute blocks.
-$PAGE->set_url('/mod/customcert/view.php', array('id' => $cm->id));
+$PAGE->set_url('/mod/customcert/view.php', ['id' => $cm->id]);
 $PAGE->set_context($context);
 $PAGE->set_cm($cm);
 
 
 // Initialise $PAGE.
-$pageurl = new moodle_url('/mod/customcert/view.php', array('id' => $cm->id));
+$pageurl = new moodle_url('/mod/customcert/view.php', ['id' => $cm->id]);
 \mod_customcert\page_helper::page_setup($pageurl, $context, format_string($customcert->name));
 
 // Check if the user can view the certificate based on time spent in course.
 if ($customcert->requiredtime && !has_capability('mod/certificate:manage', $context)) {
     if (\mod_customcert\certificate::get_course_time($course->id) < ($customcert->requiredtime * 60)) {
-        $a = new stdClass;
+        $a = new stdClass();
         $a->requiredtime = $customcert->requiredtime;
         notice(get_string('requiredtimenotmet', 'certificate', $a), "$CFG->wwwroot/course/view.php?id=$course->id");
         die;
@@ -87,10 +87,13 @@ if (empty($action)) {
     if (has_capability('mod/customcert:manage', $context)) {
         // Get the total number of issues.
         $numissues = \mod_customcert\certificate::get_number_of_issues($customcert->id, $cm, $groupmode);
-        $href = new moodle_urL('/mod/customcert/report.php', array('id' => $cm->id));
-        $url = html_writer::tag('a', get_string('viewcustomcertissues', 'customcert', $numissues),
-            array('href' => $href->out()));
-        $reportlink = html_writer::tag('div', $url, array('class' => 'reportlink'));
+        $href = new moodle_urL('/mod/customcert/report.php', ['id' => $cm->id]);
+        $url = html_writer::tag(
+            'a',
+            get_string('viewcustomcertissues', 'customcert', $numissues),
+            ['href' => $href->out()]
+        );
+        $reportlink = html_writer::tag('div', $url, ['class' => 'reportlink']);
     }
 
     // Generate the intro content if it exists.
@@ -101,17 +104,17 @@ if (empty($action)) {
 
     // If the current user has been issued a customcert generate HTML to display the details.
     $issuelist = '';
-    if ($issues = $DB->get_records('customcert_issues', array('userid' => $USER->id, 'customcertid' => $customcert->id))) {
+    if ($issues = $DB->get_records('customcert_issues', ['userid' => $USER->id, 'customcertid' => $customcert->id])) {
         $header = $OUTPUT->heading(get_string('summaryofissue', 'customcert'));
 
         $table = new html_table();
         $table->class = 'generaltable';
-        $table->head = array(get_string('issued', 'customcert'));
-        $table->align = array('left');
-        $table->attributes = array('style' => 'width:20%; margin:auto');
+        $table->head = [get_string('issued', 'customcert')];
+        $table->align = ['left'];
+        $table->attributes = ['style' => 'width:20%; margin:auto'];
 
         foreach ($issues as $issue) {
-            $row = array();
+            $row = [];
             $row[] = userdate($issue->timecreated);
             $table->data[$issue->id] = $row;
         }
@@ -121,10 +124,10 @@ if (empty($action)) {
 
     // Create the button to download the customcert.
     $linkname = get_string('getcustomcert', 'customcert');
-    $link = new moodle_url('/mod/customcert/view.php', array('id' => $cm->id, 'action' => 'download'));
+    $link = new moodle_url('/mod/customcert/view.php', ['id' => $cm->id, 'action' => 'download']);
     $downloadbutton = new single_button($link, $linkname);
-    $downloadbutton->add_action(new popup_action('click', $link, 'customcertpopup', array('height' => 600, 'width' => 800)));
-    $downloadbutton = html_writer::tag('div', $OUTPUT->render($downloadbutton), array('style' => 'text-align:center'));
+    $downloadbutton->add_action(new popup_action('click', $link, 'customcertpopup', ['height' => 600, 'width' => 800]));
+    $downloadbutton = html_writer::tag('div', $OUTPUT->render($downloadbutton), ['style' => 'text-align:center']);
 
     // Output all the page data.
     echo $OUTPUT->header();
@@ -137,7 +140,7 @@ if (empty($action)) {
     exit;
 } else { // Output to pdf
     // Create new customcert issue record if one does not already exist.
-    if (!$DB->record_exists('customcert_issues', array('userid' => $USER->id, 'customcertid' => $customcert->id))) {
+    if (!$DB->record_exists('customcert_issues', ['userid' => $USER->id, 'customcertid' => $customcert->id])) {
         $customcertissue = new stdClass();
         $customcertissue->customcertid = $customcert->id;
         $customcertissue->userid = $USER->id;

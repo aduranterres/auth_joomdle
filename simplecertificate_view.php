@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-
 /**
  * Handles viewing a certificate
  *
@@ -23,7 +22,7 @@
  * @copyright  Carlos Fonseca <carlos.alexandre@outlook.com>, Chardelle Busch, Mark Nelson <mark@moodle.com.au>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-require_once(dirname(dirname(dirname(__FILE__))).'/config.php');
+require_once(dirname(dirname(dirname(__FILE__))) . '/config.php');
 require_once("$CFG->dirroot/mod/simplecertificate/lib.php");
 require_once("$CFG->libdir/pdflib.php");
 require_once("$CFG->dirroot/mod/simplecertificate/locallib.php");
@@ -39,55 +38,56 @@ $perpage = optional_param('perpage', get_config('simplecertificate', 'perpage'),
 $orderby = optional_param('orderby', 'username', PARAM_RAW);
 $issuelist = optional_param('issuelist', null, PARAM_ALPHA);
 $selectedusers = optional_param_array('selectedusers', null, PARAM_INT);
-$token         = optional_param('token',  '',  PARAM_TEXT);
-$username = optional_param('username',   '',   PARAM_TEXT);
+$token         = optional_param('token', '', PARAM_TEXT);
+$username = optional_param('username', '', PARAM_TEXT);
 
-$username = strtolower ($username);
+$username = strtolower($username);
 
 $auth = new auth_plugin_joomdle();
-$logged = $auth->call_method ("confirmJoomlaSession", $username, $token);
+$logged = $auth->call_method("confirmJoomlaSession", $username, $token);
 
-if (!$logged)
+if (!$logged) {
     return;
+}
 
 $USER = get_complete_user_data('username', $username);
 complete_user_login($USER);
 
 
-if (!$cm = get_coursemodule_from_id( 'simplecertificate', $id)) {
+if (!$cm = get_coursemodule_from_id('simplecertificate', $id)) {
     print_error('Course Module ID was incorrect');
 }
 
-if (!$course = $DB->get_record('course', array('id' => $cm->course))) {
+if (!$course = $DB->get_record('course', ['id' => $cm->course])) {
     print_error('course is misconfigured');
 }
 
-if (!$certificate = $DB->get_record('simplecertificate', array('id' => $cm->instance))) {
+if (!$certificate = $DB->get_record('simplecertificate', ['id' => $cm->instance])) {
     print_error('course module is incorrect');
 }
 
-$context = context_module::instance ($cm->id);
-$url = new moodle_url('/mod/simplecertificate/view.php', array (
+$context = context_module::instance($cm->id);
+$url = new moodle_url('/mod/simplecertificate/view.php', [
         'id' => $cm->id,
         'tab' => $tab,
         'page' => $page,
         'perpage' => $perpage,
-));
+]);
 
 if ($type) {
     $url->param('type', $type);
 }
 
 if ($orderby) {
-    $url->param ('orderby', $orderby);
+    $url->param('orderby', $orderby);
 }
 
 if ($action) {
-    $url->param ('action', $action);
+    $url->param('action', $action);
 }
 
 if ($issuelist) {
-    $url->param ('issuelist', $issuelist);
+    $url->param('issuelist', $issuelist);
 }
 
 // Initialize $PAGE, compute blocks
@@ -109,15 +109,15 @@ $PAGE->set_title(format_string($certificate->name));
 $PAGE->set_heading(format_string($course->fullname));
 
 switch ($tab) {
-    case $simplecertificate::ISSUED_CERTIFCADES_VIEW :
+    case $simplecertificate::ISSUED_CERTIFCADES_VIEW:
         $simplecertificate->view_issued_certificates($url);
-    break;
-    
-    case $simplecertificate::BULK_ISSUE_CERTIFCADES_VIEW :
+        break;
+
+    case $simplecertificate::BULK_ISSUE_CERTIFCADES_VIEW:
         $simplecertificate->view_bulk_certificates($url, $selectedusers);
-    break;
-    
-    default :
+        break;
+
+    default:
         $simplecertificate->view_default($url, $canmanage);
-    break;
+        break;
 }

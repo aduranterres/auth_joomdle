@@ -52,7 +52,6 @@ require_once($CFG->dirroot . '/grade/report/user/lib.php');
  * Joomdle authentication plugin.
  */
 class auth_plugin_joomdle extends auth_plugin_manual {
-
     /**
      * Constructor.
      */
@@ -79,7 +78,7 @@ class auth_plugin_joomdle extends auth_plugin_manual {
         // Save any custom profile field information.
         profile_save_data($user);
 
-        $conditions = array('id' => $user->id);
+        $conditions = ['id' => $user->id];
         $user = $DB->get_record('user', $conditions);
 
         /* Create user in Joomla */
@@ -131,7 +130,7 @@ class auth_plugin_joomdle extends auth_plugin_manual {
             } else if ($user->auth != 'joomdle') {
                 return AUTH_CONFIRM_ERROR;
             } else if ($user->secret == stripslashes($confirmsecret)) {   // They have provided the secret key to get in.
-                $conditions = array('id' => $user->id);
+                $conditions = ['id' => $user->id];
                 if (!$DB->set_field("user", "confirmed", 1, $conditions)) {
                     return AUTH_CONFIRM_FAIL;
                 }
@@ -214,13 +213,10 @@ class auth_plugin_joomdle extends auth_plugin_manual {
         if ($joomla_lang == '') {
             $joomla_xmlrpc_server_url = get_config('auth_joomdle', 'joomla_url') .
                 '/index.php?option=com_joomdle&task=ws.server&format=xmlrpc';
-        }
-        else
-            if ($joomla_sef) {
+        } else if ($joomla_sef) {
             $joomla_xmlrpc_server_url = get_config('auth_joomdle', 'joomla_url') .
-                '/index.php/' . $joomla_lang . '/?option=com_joomdle&task=ws.server&format=xmlrpc';
-            }
-        else {
+            '/index.php/' . $joomla_lang . '/?option=com_joomdle&task=ws.server&format=xmlrpc';
+        } else {
             $joomla_xmlrpc_server_url = get_config('auth_joomdle', 'joomla_url') .
                 '/index.php?lang=' . $joomla_lang . '&option=com_joomdle&task=ws.server&format=xmlrpc';
         }
@@ -242,13 +238,10 @@ class auth_plugin_joomdle extends auth_plugin_manual {
         if ($joomla_lang == '') {
             $joomla_rest_server_url = get_config('auth_joomdle', 'joomla_url') .
                 '/index.php?option=com_joomdle&task=ws.server&format=json';
-        }
-        else
-            if ($joomla_sef) {
+        } else if ($joomla_sef) {
             $joomla_rest_server_url = get_config('auth_joomdle', 'joomla_url') .
-                '/index.php/' . $joomla_lang . '/?option=com_joomdle&task=ws.server&format=json';
-            }
-        else {
+            '/index.php/' . $joomla_lang . '/?option=com_joomdle&task=ws.server&format=json';
+        } else {
             $joomla_rest_server_url = get_config('auth_joomdle', 'joomla_url') .
                 '/index.php?lang=' . $joomla_lang . '&option=com_joomdle&task=ws.server&format=json';
         }
@@ -267,8 +260,7 @@ class auth_plugin_joomdle extends auth_plugin_manual {
 
         if ($ws_protocol == 'xmlrpc') {
             $response = $this->call_method_xmlrpc($method, $params, $params2, $params3, $params4, $params5);
-        }
-        else {
+        } else {
             $response = $this->call_method_rest($method, $params, $params2, $params3, $params4, $params5);
         }
 
@@ -280,8 +272,7 @@ class auth_plugin_joomdle extends auth_plugin_manual {
 
         if ($connection_method == 'fgc') {
             $response = $this->call_method_xmlrpc_fgc($method, $params, $params2, $params3, $params4, $params5);
-        }
-        else {
+        } else {
             $response = $this->call_method_xmlrpc_curl($method, $params, $params2, $params3, $params4, $params5);
         }
 
@@ -291,32 +282,27 @@ class auth_plugin_joomdle extends auth_plugin_manual {
     private function call_method_xmlrpc_fgc($method, $params = '', $params2 = '', $params3 = '', $params4 = '', $params5 = '') {
         $joomla_xmlrpc_url = $this->_get_xmlrpc_url();
 
-        $options = array('encoding' => 'utf-8', 'escaping' => 'markup');
+        $options = ['encoding' => 'utf-8', 'escaping' => 'markup'];
 
         if ($params == '') {
-            $request = xmlrpc_encode_request("joomdle." . $method, array(), $options);
-        }
-        else if ($params2 == '') {
-            $request = xmlrpc_encode_request("joomdle." . $method, array($params), $options);
-        }
-        else if ($params3 == '') {
-            $request = xmlrpc_encode_request("joomdle." . $method, array($params, $params2), $options);
-        }
-        else if ($params4 == '') {
-            $request = xmlrpc_encode_request("joomdle." . $method, array($params, $params2, $params3), $options);
-        }
-        else if ($params5 == '') {
-            $request = xmlrpc_encode_request("joomdle." . $method, array($params, $params2, $params3, $params4), $options);
-        }
-        else {
-            $request = xmlrpc_encode_request("joomdle." . $method, array($params, $params2, $params3, $params4, $params5), $options);
+            $request = xmlrpc_encode_request("joomdle." . $method, [], $options);
+        } else if ($params2 == '') {
+            $request = xmlrpc_encode_request("joomdle." . $method, [$params], $options);
+        } else if ($params3 == '') {
+            $request = xmlrpc_encode_request("joomdle." . $method, [$params, $params2], $options);
+        } else if ($params4 == '') {
+            $request = xmlrpc_encode_request("joomdle." . $method, [$params, $params2, $params3], $options);
+        } else if ($params5 == '') {
+            $request = xmlrpc_encode_request("joomdle." . $method, [$params, $params2, $params3, $params4], $options);
+        } else {
+            $request = xmlrpc_encode_request("joomdle." . $method, [$params, $params2, $params3, $params4, $params5], $options);
         }
 
-        $context = stream_context_create(array('http' => array(
+        $context = stream_context_create(['http' => [
             'method' => "POST",
             'header' => "Content-Type: text/xml\r\nUser-Agent: Joomdle",
-            'content' => $request
-        )));
+            'content' => $request,
+        ]]);
         $response = file_get_contents($joomla_xmlrpc_url, false, $context);
 
         $response = trim($response);
@@ -336,28 +322,23 @@ class auth_plugin_joomdle extends auth_plugin_manual {
 
         $joomla_xmlrpc_url = $this->_get_xmlrpc_url();
 
-        $options = array('encoding' => 'utf-8', 'escaping' => 'markup');
+        $options = ['encoding' => 'utf-8', 'escaping' => 'markup'];
 
         if ($params == '') {
-            $request = xmlrpc_encode_request("joomdle." . $method, array(), $options);
-        }
-        else if ($params2 == '') {
-            $request = xmlrpc_encode_request("joomdle." . $method, array($params), $options);
-        }
-        else if ($params3 == '') {
-            $request = xmlrpc_encode_request("joomdle." . $method, array($params, $params2), $options);
-        }
-        else if ($params4 == '') {
-            $request = xmlrpc_encode_request("joomdle." . $method, array($params, $params2, $params3), $options);
-        }
-        else if ($params5 == '') {
-            $request = xmlrpc_encode_request("joomdle." . $method, array($params, $params2, $params3, $params4), $options);
-        }
-        else {
-            $request = xmlrpc_encode_request("joomdle." . $method, array($params, $params2, $params3, $params4, $params5), $options);
+            $request = xmlrpc_encode_request("joomdle." . $method, [], $options);
+        } else if ($params2 == '') {
+            $request = xmlrpc_encode_request("joomdle." . $method, [$params], $options);
+        } else if ($params3 == '') {
+            $request = xmlrpc_encode_request("joomdle." . $method, [$params, $params2], $options);
+        } else if ($params4 == '') {
+            $request = xmlrpc_encode_request("joomdle." . $method, [$params, $params2, $params3], $options);
+        } else if ($params5 == '') {
+            $request = xmlrpc_encode_request("joomdle." . $method, [$params, $params2, $params3, $params4], $options);
+        } else {
+            $request = xmlrpc_encode_request("joomdle." . $method, [$params, $params2, $params3, $params4, $params5], $options);
         }
 
-        $headers = array();
+        $headers = [];
         array_push($headers, "Content-Type: text/xml");
         array_push($headers, "Content-Length: " . strlen($request));
         array_push($headers, "User-Agent: Joomdle");
@@ -375,7 +356,6 @@ class auth_plugin_joomdle extends auth_plugin_manual {
             if (empty($CFG->proxyport)) {
                 curl_setopt($ch, CURLOPT_PROXY, $CFG->proxyhost);
             } else {
-
                 curl_setopt($ch, CURLOPT_PROXY, $CFG->proxyhost . ':' . $CFG->proxyport);
             }
             curl_setopt($ch, CURLOPT_HTTPPROXYTUNNEL, false);
@@ -401,8 +381,7 @@ class auth_plugin_joomdle extends auth_plugin_manual {
 
         if ($connection_method == 'fgc') {
             $response = $this->call_method_rest_fgc($method, $params, $params2, $params3, $params4, $params5);
-        }
-        else {
+        } else {
             $response = $this->call_method_rest_curl($method, $params, $params2, $params3, $params4, $params5);
         }
 
@@ -415,11 +394,11 @@ class auth_plugin_joomdle extends auth_plugin_manual {
         $joomla_rest_url = $this->_get_rest_url();
         $url = $joomla_rest_url . '&wsfunction=' . $method;
 
-        $options = array();
+        $options = [];
 
         $request = $this->get_request_rest($method, $params, $params2, $params3, $params4, $params5);
 
-        $headers = array();
+        $headers = [];
         array_push($headers, "Content-Type: application/x-www-form-urlencoded");
         array_push($headers, "Content-Length: " . strlen($request));
         array_push($headers, "User-Agent: Joomdle");
@@ -437,7 +416,6 @@ class auth_plugin_joomdle extends auth_plugin_manual {
             if (empty($CFG->proxyport)) {
                 curl_setopt($ch, CURLOPT_PROXY, $CFG->proxyhost);
             } else {
-
                 curl_setopt($ch, CURLOPT_PROXY, $CFG->proxyhost . ':' . $CFG->proxyport);
             }
             curl_setopt($ch, CURLOPT_HTTPPROXYTUNNEL, false);
@@ -460,11 +438,11 @@ class auth_plugin_joomdle extends auth_plugin_manual {
 
         $request = $this->get_request_rest($method, $params, $params2, $params3, $params4, $params5);
 
-        $context = stream_context_create(array('http' => array(
+        $context = stream_context_create(['http' => [
             'method' => "POST",
             'header' => "Content-Type: application/x-www-form-urlencoded\r\nUser-Agent: Joomdle",
-            'content' => $request
-        )));
+            'content' => $request,
+        ]]);
         $response = file_get_contents($url, false, $context);
 
         $response = trim($response);
@@ -478,8 +456,7 @@ class auth_plugin_joomdle extends auth_plugin_manual {
 
         if ($ws_protocol == 'xmlrpc') {
             $response = $this->call_method_debug_xmlrpc($method, $params, $params2, $params3, $params4, $params5);
-        }
-        else {
+        } else {
             $response = $this->call_method_debug_rest($method, $params, $params2, $params3, $params4, $params5);
         }
 
@@ -491,8 +468,7 @@ class auth_plugin_joomdle extends auth_plugin_manual {
 
         if ($connection_method == 'fgc') {
             $response = $this->call_method_debug_xmlrpc_fgc($method, $params, $params2, $params3, $params4, $params5);
-        }
-        else {
+        } else {
             $response = $this->call_method_debug_xmlrpc_curl($method, $params, $params2, $params3, $params4, $params5);
         }
 
@@ -504,32 +480,27 @@ class auth_plugin_joomdle extends auth_plugin_manual {
 
         $joomla_xmlrpc_url = $this->_get_xmlrpc_url();
 
-        $options = array();
+        $options = [];
 
         if ($params == '') {
-            $request = xmlrpc_encode_request("joomdle." . $method, array(), $options);
-        }
-        else if ($params2 == '') {
-            $request = xmlrpc_encode_request("joomdle." . $method, array($params), $options);
-        }
-        else if ($params3 == '') {
-            $request = xmlrpc_encode_request("joomdle." . $method, array($params, $params2), $options);
-        }
-        else if ($params4 == '') {
-            $request = xmlrpc_encode_request("joomdle." . $method, array($params, $params2, $params3), $options);
-        }
-        else if ($params5 == '') {
-            $request = xmlrpc_encode_request("joomdle." . $method, array($params, $params2, $params3, $params4), $options);
-        }
-        else {
-            $request = xmlrpc_encode_request("joomdle." . $method, array($params, $params2, $params3, $params4, $params5), $options);
+            $request = xmlrpc_encode_request("joomdle." . $method, [], $options);
+        } else if ($params2 == '') {
+            $request = xmlrpc_encode_request("joomdle." . $method, [$params], $options);
+        } else if ($params3 == '') {
+            $request = xmlrpc_encode_request("joomdle." . $method, [$params, $params2], $options);
+        } else if ($params4 == '') {
+            $request = xmlrpc_encode_request("joomdle." . $method, [$params, $params2, $params3], $options);
+        } else if ($params5 == '') {
+            $request = xmlrpc_encode_request("joomdle." . $method, [$params, $params2, $params3, $params4], $options);
+        } else {
+            $request = xmlrpc_encode_request("joomdle." . $method, [$params, $params2, $params3, $params4, $params5], $options);
         }
 
-        $context = stream_context_create(array('http' => array(
+        $context = stream_context_create(['http' => [
             'method' => "POST",
             'header' => "Content-Type: text/xml\r\nUser-Agent: Joomdle ",
-            'content' => $request
-        )));
+            'content' => $request,
+        ]]);
         $response = file_get_contents($joomla_xmlrpc_url, false, $context);
 
         // Save raw reply to file.
@@ -553,28 +524,23 @@ class auth_plugin_joomdle extends auth_plugin_manual {
 
         $joomla_xmlrpc_url = $this->_get_xmlrpc_url();
 
-        $options = array();
+        $options = [];
 
         if ($params == '') {
-            $request = xmlrpc_encode_request("joomdle." . $method, array(), $options);
-        }
-        else if ($params2 == '') {
-            $request = xmlrpc_encode_request("joomdle." . $method, array($params), $options);
-        }
-        else if ($params3 == '') {
-            $request = xmlrpc_encode_request("joomdle." . $method, array($params, $params2), $options);
-        }
-        else if ($params4 == '') {
-            $request = xmlrpc_encode_request("joomdle." . $method, array($params, $params2, $params3), $options);
-        }
-        else if ($params5 == '') {
-            $request = xmlrpc_encode_request("joomdle." . $method, array($params, $params2, $params3, $params4), $options);
-        }
-        else {
-            $request = xmlrpc_encode_request("joomdle." . $method, array($params, $params2, $params3, $params4, $params5), $options);
+            $request = xmlrpc_encode_request("joomdle." . $method, [], $options);
+        } else if ($params2 == '') {
+            $request = xmlrpc_encode_request("joomdle." . $method, [$params], $options);
+        } else if ($params3 == '') {
+            $request = xmlrpc_encode_request("joomdle." . $method, [$params, $params2], $options);
+        } else if ($params4 == '') {
+            $request = xmlrpc_encode_request("joomdle." . $method, [$params, $params2, $params3], $options);
+        } else if ($params5 == '') {
+            $request = xmlrpc_encode_request("joomdle." . $method, [$params, $params2, $params3, $params4], $options);
+        } else {
+            $request = xmlrpc_encode_request("joomdle." . $method, [$params, $params2, $params3, $params4, $params5], $options);
         }
 
-        $headers = array();
+        $headers = [];
         array_push($headers, "Content-Type: text/xml");
         array_push($headers, "Content-Length: " . strlen($request));
         array_push($headers, "User-Agent: Joomdle");
@@ -592,7 +558,6 @@ class auth_plugin_joomdle extends auth_plugin_manual {
             if (empty($CFG->proxyport)) {
                 curl_setopt($ch, CURLOPT_PROXY, $CFG->proxyhost);
             } else {
-
                 curl_setopt($ch, CURLOPT_PROXY, $CFG->proxyhost . ':' . $CFG->proxyport);
             }
             curl_setopt($ch, CURLOPT_HTTPPROXYTUNNEL, false);
@@ -622,8 +587,7 @@ class auth_plugin_joomdle extends auth_plugin_manual {
 
         if ($connection_method == 'fgc') {
             $response = $this->call_method_debug_rest_fgc($method, $params, $params2, $params3, $params4, $params5);
-        }
-        else {
+        } else {
             $response = $this->call_method_debug_rest_curl($method, $params, $params2, $params3, $params4, $params5);
         }
 
@@ -636,11 +600,11 @@ class auth_plugin_joomdle extends auth_plugin_manual {
         $joomla_rest_url = $this->_get_rest_url();
         $url = $joomla_rest_url . '&wsfunction=' . $method;
 
-        $options = array();
+        $options = [];
 
         $request = $this->get_request_rest($method, $params, $params2, $params3, $params4, $params5);
 
-        $headers = array();
+        $headers = [];
         array_push($headers, "Content-Type: application/x-www-form-urlencoded");
         array_push($headers, "Content-Length: " . strlen($request));
         array_push($headers, "User-Agent: Joomdle");
@@ -658,7 +622,6 @@ class auth_plugin_joomdle extends auth_plugin_manual {
             if (empty($CFG->proxyport)) {
                 curl_setopt($ch, CURLOPT_PROXY, $CFG->proxyhost);
             } else {
-
                 curl_setopt($ch, CURLOPT_PROXY, $CFG->proxyhost . ':' . $CFG->proxyport);
             }
             curl_setopt($ch, CURLOPT_HTTPPROXYTUNNEL, false);
@@ -685,11 +648,11 @@ class auth_plugin_joomdle extends auth_plugin_manual {
 
         $request = $this->get_request_rest($method, $params, $params2, $params3, $params4, $params5);
 
-        $context = stream_context_create(array('http' => array(
+        $context = stream_context_create(['http' => [
             'method' => "POST",
             'header' => "Content-Type: application/x-www-form-urlencoded\r\nUser-Agent: Joomdle",
-            'content' => $request
-        )));
+            'content' => $request,
+        ]]);
         $response = file_get_contents($url, false, $context);
 
         // Save raw reply to file.
@@ -709,13 +672,13 @@ class auth_plugin_joomdle extends auth_plugin_manual {
            The goal is to convert the params* vars to an array where the key is the parameter name expected by the web service
            Example for getUserInfo:
             $rest_params = array ('username' => $params, 'app' => $params2);
-       */
+        */
 
         require_once($CFG->dirroot . '/auth/joomdle/classes/joomlaws.php');
         $joomlaws = new joomlaws();
         $sig = $joomlaws->{$method . '_parameters'}();
 
-        $rest_params = array();
+        $rest_params = [];
         $i = 1;
         foreach ($sig as $param_key) {
             $param = 'params';
@@ -737,10 +700,10 @@ class auth_plugin_joomdle extends auth_plugin_manual {
             if (is_object($v)) {
                 $v = (array) $v;
             }
-            if (is_array($v)) { //the value is an array, call the function recursively
+            if (is_array($v)) { // the value is an array, call the function recursively
                 $newcurrentdata = $newcurrentdata . '[' . urlencode($k) . ']';
                 $this->format_array_postdata_for_curlcall($v, $newcurrentdata, $data);
-            } else { //add the POST parameter to the $data array
+            } else { // add the POST parameter to the $data array
                 $k = $k ? $k : '';
                 $v = $v ? $v : '';
                 $data[] = $newcurrentdata . '[' . urlencode($k) . ']=' . urlencode($v);
@@ -752,7 +715,7 @@ class auth_plugin_joomdle extends auth_plugin_manual {
         if (is_object($postdata)) {
             $postdata = (array) $postdata;
         }
-        $data = array();
+        $data = [];
         foreach ($postdata as $k => $v) {
             if (is_object($v)) {
                 $v = (array) $v;
@@ -775,8 +738,7 @@ class auth_plugin_joomdle extends auth_plugin_manual {
 
         if ($connection_method == 'fgc') {
             $response = file_get_contents($file, false, null);
-        }
-        else {
+        } else {
             $response = $this->get_file_curl($file);
         }
 
@@ -846,21 +808,20 @@ class auth_plugin_joomdle extends auth_plugin_manual {
         $user = get_complete_user_data('username', $username);
 
         if (!$user) {
-            return array();
+            return [];
         }
 
         if ($order_by_cat) {
-            $c = enrol_get_users_courses($user->id, true, array('summary'), 'category, sortorder ASC');
-        }
-        else {
-            $c = enrol_get_users_courses($user->id, true, array('summary'));
+            $c = enrol_get_users_courses($user->id, true, ['summary'], 'category, sortorder ASC');
+        } else {
+            $c = enrol_get_users_courses($user->id, true, ['summary']);
         }
 
         $options['noclean'] = true;
-        $courses = array();
+        $courses = [];
         $i = 0;
         foreach ($c as $course) {
-            $record = array();
+            $record = [];
             $record['id'] = $course->id;
             $record['fullname'] = $course->fullname;
             $record['category'] = $course->category;
@@ -873,16 +834,16 @@ class auth_plugin_joomdle extends auth_plugin_manual {
             $record['summary'] = format_text($record['summary'], FORMAT_MOODLE, $options);
 
             // Check if user can self-unenrol.
-            if ((has_capability('enrol/manual:unenrolself', $context, $user->id)) ||
+            if (
+                (has_capability('enrol/manual:unenrolself', $context, $user->id)) ||
                 (has_capability('enrol/self:unenrolself', $context, $user->id))
             ) {
                 $record['can_unenrol'] = 1;
-            }
-            else {
+            } else {
                 $record['can_unenrol'] = 0;
             }
 
-            $record['summary_files'] = array();
+            $record['summary_files'] = [];
             $course_obj = new \core_course_list_element(get_course($course->id));
             foreach ($course_obj->get_course_overviewfiles() as $file) {
                 $isimage = $file->is_valid_image();
@@ -893,7 +854,7 @@ class auth_plugin_joomdle extends auth_plugin_manual {
                     !$isimage
                 );
 
-                $url_item = array();
+                $url_item = [];
                 $url_item['url'] = $url;
                 $record['summary_files'][] = $url_item;
             }
@@ -904,13 +865,12 @@ class auth_plugin_joomdle extends auth_plugin_manual {
 
         // Re-sort by caregory sortorder if order_by_cat
         if ($order_by_cat) {
-
             // Get cats by sortorder
             $query = "SELECT * from {$CFG->prefix}course_categories order by sortorder";
             $records = $DB->get_records_sql($query);
-            $cats = array();
+            $cats = [];
             foreach ($records as $record) {
-                $cats[$record->id] = array();
+                $cats[$record->id] = [];
             }
 
             // Fill array for sorting
@@ -918,7 +878,7 @@ class auth_plugin_joomdle extends auth_plugin_manual {
                 $cats[$course['category']][] = $course;
             }
 
-            $courses = array();
+            $courses = [];
             foreach ($cats as $cat) {
                 foreach ($cat as $course) {
                     $courses[] = $course;
@@ -971,7 +931,7 @@ class auth_plugin_joomdle extends auth_plugin_manual {
             $user = get_complete_user_data('username', $username);
             $c = enrol_get_users_courses($user->id, true);
 
-            $my_courses = array();
+            $my_courses = [];
             foreach ($c as $course) {
                 $my_courses[] = $course->id;
             }
@@ -980,7 +940,7 @@ class auth_plugin_joomdle extends auth_plugin_manual {
         $i = 0;
         $now = time();
         $options['noclean'] = true;
-        $cursos = array();
+        $cursos = [];
         foreach ($records as $curso) {
             $enrol_methods = enrol_get_instances($curso->remoteid, true);
 
@@ -995,7 +955,7 @@ class auth_plugin_joomdle extends auth_plugin_manual {
                     $query = "SELECT cost, currency
                                 FROM {$CFG->prefix}enrol
                                 where courseid = ? and enrol = ?";
-                    $params = array($curso->remoteid, $enrol);
+                    $params = [$curso->remoteid, $enrol];
                     $record = $DB->get_record_sql($query, $params, IGNORE_MULTIPLE);
                     $c['cost'] = (float) $record->cost;
                     $c['currency'] = $record->currency;
@@ -1004,8 +964,7 @@ class auth_plugin_joomdle extends auth_plugin_manual {
                 // Self-enrolment.
                 if ($instance->enrol == 'self') {
                     $c['self_enrolment'] = 1;
-                }
-                else {
+                } else {
                     $c['self_enrolment'] = 0;
                 }
 
@@ -1071,7 +1030,7 @@ class auth_plugin_joomdle extends auth_plugin_manual {
             $c['cat_description'] = str_replace('pluginfile.php', '/auth/joomdle/pluginfile_joomdle.php', $c['cat_description']);
             $c['cat_description'] = format_text($c['cat_description'], FORMAT_MOODLE, $options);
 
-            $c['summary_files'] = array();
+            $c['summary_files'] = [];
             $course = new \core_course_list_element(get_course($curso->remoteid));
             foreach ($course->get_course_overviewfiles() as $file) {
                 $isimage = $file->is_valid_image();
@@ -1082,7 +1041,7 @@ class auth_plugin_joomdle extends auth_plugin_manual {
                     !$isimage
                 );
 
-                $url_item = array();
+                $url_item = [];
                 $url_item['url'] = $url;
                 $c['summary_files'][] = $url_item;
             }
@@ -1104,8 +1063,8 @@ class auth_plugin_joomdle extends auth_plugin_manual {
         global $CFG, $DB;
 
         $chars_array = str_split($start_chars);
-        $likes = array();
-        $params = array();
+        $likes = [];
+        $params = [];
         foreach ($chars_array as $c) {
             $cond = "$c%";
 
@@ -1145,7 +1104,7 @@ class auth_plugin_joomdle extends auth_plugin_manual {
             $user = get_complete_user_data('username', $username);
             $c = enrol_get_users_courses($user->id, true);
 
-            $my_courses = array();
+            $my_courses = [];
             foreach ($c as $course) {
                 $my_courses[] = $course->id;
             }
@@ -1154,7 +1113,7 @@ class auth_plugin_joomdle extends auth_plugin_manual {
         $i = 0;
         $now = time();
         $options['noclean'] = true;
-        $cursos = array();
+        $cursos = [];
         foreach ($records as $curso) {
             $c = get_object_vars($curso);
 
@@ -1168,7 +1127,7 @@ class auth_plugin_joomdle extends auth_plugin_manual {
                     $query = "SELECT cost, currency
                                 FROM {$CFG->prefix}enrol
                                 where courseid = ? and enrol = ?";
-                    $params = array($curso->remoteid, $enrol);
+                    $params = [$curso->remoteid, $enrol];
                     $record = $DB->get_record_sql($query, $params);
                     $c['cost'] = (float) $record->cost;
                     $c['currency'] = $record->currency;
@@ -1225,7 +1184,7 @@ class auth_plugin_joomdle extends auth_plugin_manual {
             $c['summary'] = str_replace('pluginfile.php', '/auth/joomdle/pluginfile_joomdle.php', $c['summary']);
             $c['summary'] = format_text($c['summary'], FORMAT_MOODLE, $options);
 
-            $c['summary_files'] = array();
+            $c['summary_files'] = [];
             $course = new \core_course_list_element(get_course($curso->remoteid));
             foreach ($course->get_course_overviewfiles() as $file) {
                 $isimage = $file->is_valid_image();
@@ -1236,7 +1195,7 @@ class auth_plugin_joomdle extends auth_plugin_manual {
                     !$isimage
                 );
 
-                $url_item = array();
+                $url_item = [];
                 $url_item['url'] = $url;
                 $c['summary_files'][] = $url_item;
             }
@@ -1266,7 +1225,7 @@ class auth_plugin_joomdle extends auth_plugin_manual {
                 ORDER BY
                 sortorder ASC
                 ";
-            $params = array();
+            $params = [];
         } else {
             $query = "SELECT id, name, description
                 FROM
@@ -1277,12 +1236,12 @@ class auth_plugin_joomdle extends auth_plugin_manual {
                 ORDER BY
                 sortorder ASC
                 ";
-            $params = array($cat);
+            $params = [$cat];
         }
         $records = $DB->get_records_sql($query, $params);
 
         $options['noclean'] = true;
-        $cats = array();
+        $cats = [];
         foreach ($records as $cat) {
             $c = get_object_vars($cat);
             $c['name'] = format_string($c['name']);
@@ -1342,14 +1301,14 @@ class auth_plugin_joomdle extends auth_plugin_manual {
             sortorder ASC
             ";
 
-        $params = array($category);
+        $params = [$category];
         $records = $DB->get_records_sql($query, $params);
 
         if ($username) {
             $user = get_complete_user_data('username', $username);
             $c = enrol_get_users_courses($user->id, true);
 
-            $my_courses = array();
+            $my_courses = [];
             foreach ($c as $course) {
                 $my_courses[] = $course->id;
             }
@@ -1358,7 +1317,7 @@ class auth_plugin_joomdle extends auth_plugin_manual {
         $i = 0;
         $now = time();
         $options['noclean'] = true;
-        $cursos = array();
+        $cursos = [];
         foreach ($records as $curso) {
             $c = get_object_vars($curso);
 
@@ -1373,7 +1332,7 @@ class auth_plugin_joomdle extends auth_plugin_manual {
                     $query = "SELECT cost, currency
                                 FROM {$CFG->prefix}enrol
                                 where courseid = ? and enrol = ?";
-                    $params = array($curso->remoteid, $enrol);
+                    $params = [$curso->remoteid, $enrol];
                     $record = $DB->get_record_sql($query, $params);
                     $c['cost'] = (float) $record->cost;
                     $c['currency'] = $record->currency;
@@ -1434,7 +1393,7 @@ class auth_plugin_joomdle extends auth_plugin_manual {
             $c['summary'] = str_replace('pluginfile.php', '/auth/joomdle/pluginfile_joomdle.php', $c['summary']);
             $c['summary'] = format_text($c['summary'], FORMAT_MOODLE, $options);
 
-            $c['summary_files'] = array();
+            $c['summary_files'] = [];
             $course = new \core_course_list_element(get_course($curso->remoteid));
             foreach ($course->get_course_overviewfiles() as $file) {
                 $isimage = $file->is_valid_image();
@@ -1445,7 +1404,7 @@ class auth_plugin_joomdle extends auth_plugin_manual {
                     !$isimage
                 );
 
-                $url_item = array();
+                $url_item = [];
                 $url_item['url'] = $url;
                 $c['summary_files'][] = $url_item;
             }
@@ -1465,7 +1424,7 @@ class auth_plugin_joomdle extends auth_plugin_manual {
         global $CFG, $DB;
 
         // Prepare reply for "not found" course.
-        $not_found = array();
+        $not_found = [];
         $not_found['remoteid'] = 0;
         $not_found['cat_id'] = 0;
         $not_found['cat_name'] = "";
@@ -1483,7 +1442,7 @@ class auth_plugin_joomdle extends auth_plugin_manual {
         $not_found['enroled'] = 0;
         $not_found['in_enrol_date'] = false;
         $not_found['guest'] = 0;
-        $not_found['summary_files'] = array();
+        $not_found['summary_files'] = [];
 
         $username = strtolower($username);
 
@@ -1510,7 +1469,7 @@ class auth_plugin_joomdle extends auth_plugin_manual {
             ORDER BY
             sortorder ASC";
 
-        $params = array($id);
+        $params = [$id];
         $record = $DB->get_record_sql($query, $params);
 
         if (!$record) {
@@ -1550,7 +1509,7 @@ class auth_plugin_joomdle extends auth_plugin_manual {
         $course_info['summary'] = str_replace('pluginfile.php', '/auth/joomdle/pluginfile_joomdle.php', $course_info['summary']);
         $course_info['summary'] = format_text($course_info['summary'], FORMAT_MOODLE, $options);
 
-        $params = array($id);
+        $params = [$id];
         $query = "SELECT count(*)
             FROM
             {$CFG->prefix}course_sections
@@ -1572,7 +1531,7 @@ class auth_plugin_joomdle extends auth_plugin_manual {
                 $query = "SELECT cost, currency
                             FROM {$CFG->prefix}enrol
                             where courseid = ? and enrol = ?";
-                $params = array($id, $enrol);
+                $params = [$id, $enrol];
                 $record = $DB->get_record_sql($query, $params);
                 $course_info['cost'] = (float) $record->cost;
                 $course_info['currency'] = $record->currency;
@@ -1625,7 +1584,7 @@ class auth_plugin_joomdle extends auth_plugin_manual {
             $user = get_complete_user_data('username', $username);
             $courses = enrol_get_users_courses($user->id, true);
 
-            $my_courses = array();
+            $my_courses = [];
             foreach ($courses as $course) {
                 $my_courses[] = $course->id;
             }
@@ -1634,7 +1593,7 @@ class auth_plugin_joomdle extends auth_plugin_manual {
             }
         }
 
-        $course_info['summary_files'] = array();
+        $course_info['summary_files'] = [];
         $course = new \core_course_list_element(get_course($id));
         foreach ($course->get_course_overviewfiles() as $file) {
             $isimage = $file->is_valid_image();
@@ -1645,7 +1604,7 @@ class auth_plugin_joomdle extends auth_plugin_manual {
                 !$isimage
             );
 
-            $url_item = array();
+            $url_item = [];
             $url_item['url'] = $url;
             $course_info['summary_files'][] = $url_item;
         }
@@ -1674,13 +1633,13 @@ class auth_plugin_joomdle extends auth_plugin_manual {
             ORDER by cs.section;
             ";
 
-        $params = array($id);
+        $params = [$id];
         $records = $DB->get_records_sql($query, $params);
 
         $context = context_course::instance($id);
 
         $options['noclean'] = true;
-        $data = array();
+        $data = [];
         foreach ($records as $r) {
             $e['section'] = $r->section;
             $e['section'] = format_string($e['section']);
@@ -1709,7 +1668,7 @@ class auth_plugin_joomdle extends auth_plugin_manual {
         /* 3 indica profesores editores (table mdl_role) */
         $profs = get_role_users(3, $context);
 
-        $data = array();
+        $data = [];
         $i = 0;
         foreach ($profs as $p) {
             $e['firstname'] = $p->firstname;
@@ -1727,8 +1686,8 @@ class auth_plugin_joomdle extends auth_plugin_manual {
         global $CFG, $DB;
 
         $chars_array = str_split($start_chars);
-        $likes = array();
-        $params = array();
+        $likes = [];
+        $params = [];
         foreach ($chars_array as $c) {
             $cond = "$c%";
 
@@ -1747,9 +1706,9 @@ class auth_plugin_joomdle extends auth_plugin_manual {
         $query .= " ORDER BY lastname, firstname";
 
         $records = $DB->get_records_sql($query, $params);
-        $data = array();
+        $data = [];
         foreach ($records as $p) {
-            $e = array();
+            $e = [];
             $e['firstname'] = $p->firstname;
             $e['lastname'] = $p->lastname;
             $e['username'] = $p->username;
@@ -1771,9 +1730,9 @@ class auth_plugin_joomdle extends auth_plugin_manual {
                     WHERE c.id = ct.instanceid AND ra.roleid =3 AND ra.userid = u.id AND
                     ct.id = ra.contextid AND ca.id = c.category and u.username= ?";
 
-        $params = array($username);
+        $params = [$username];
         $records = $DB->get_records_sql($query, $params);
-        $data = array();
+        $data = [];
         $i = 0;
         foreach ($records as $p) {
             $e['remoteid'] = $p->remoteid;
@@ -1806,8 +1765,8 @@ class auth_plugin_joomdle extends auth_plugin_manual {
                  WHERE gi.id = ?
                    AND g.finalgrade IS NOT NULL
               GROUP BY g.itemid";
-        $sum_array = array();
-        $params = array($itemid);
+        $sum_array = [];
+        $params = [$itemid];
         if ($sums = $DB->get_record_sql($sql, $params)) {
             $sql2 = " select count(*) from {$CFG->prefix}grade_grades where itemid=?;";
             $n = $DB->count_records_sql($sql2, $params);
@@ -1829,7 +1788,7 @@ class auth_plugin_joomdle extends auth_plugin_manual {
         /* Obtenemos todas las tareas del curso */
         $query = "select id,name from  {$CFG->prefix}assignment where course=?;";
         /* Para cada una, obtenemos la nota media */
-        $params = array($id);
+        $params = [$id];
         $tareas = $DB->get_records_sql($query, $params);
 
         $i = 0;
@@ -1841,7 +1800,7 @@ class auth_plugin_joomdle extends auth_plugin_manual {
                     finalgrade is not NULL
                     GROUP BY itemid;
                     ";
-            $params = array($ass_id);
+            $params = [$ass_id];
             $n = $DB->get_records_sql($query, $params);
             $rdo[$i]['tarea'] = $tarea->name;
             foreach ($n as $nn) {
@@ -1861,12 +1820,12 @@ class auth_plugin_joomdle extends auth_plugin_manual {
         $user = get_complete_user_data('username', $username);
 
         if (!$user) {
-            return array();
+            return [];
         }
 
         $courses = enrol_get_users_courses($user->id, true);
 
-        $news = array();
+        $news = [];
         foreach ($courses as $c) {
             $course_news['remoteid'] = $c->id;
             $course_news['fullname'] = $c->fullname;
@@ -1902,13 +1861,13 @@ class auth_plugin_joomdle extends auth_plugin_manual {
                     AND gi.courseid = ?
                     GROUP BY g.itemid, g.finalgrade, gi.courseid, gi.itemname,gi.id, g.timemodified";
 
-        $sum_array = array();
-        $params = array($uid, $cid);
+        $sum_array = [];
+        $params = [$uid, $cid];
         if ($sums = $DB->get_records_sql($sql, $params)) {
             $i = 0;
-            $rdo = array();
+            $rdo = [];
             foreach ($sums as $sum) {
-                if (! $grade_grade = grade_grade::fetch(array('itemid' => $sum->id, 'userid' => $uid))) {
+                if (! $grade_grade = grade_grade::fetch(['itemid' => $sum->id, 'userid' => $uid])) {
                     $grade_grade = new grade_grade();
                     $grade_grade->userid = $user->id;
                     $grade_grade->itemid = null;
@@ -1931,7 +1890,7 @@ class auth_plugin_joomdle extends auth_plugin_manual {
             return $rdo;
         }
 
-        return array();
+        return [];
     }
 
     public function get_my_grade_user_report($username) {
@@ -1942,12 +1901,12 @@ class auth_plugin_joomdle extends auth_plugin_manual {
         $user = get_complete_user_data('username', $username);
 
         if (!$user) {
-            return array();
+            return [];
         }
 
         $courses = enrol_get_users_courses($user->id, true);
 
-        $news = array();
+        $news = [];
         foreach ($courses as $c) {
             $course_news['remoteid'] = $c->id;
             $course_news['fullname'] = $c->fullname;
@@ -1964,31 +1923,30 @@ class auth_plugin_joomdle extends auth_plugin_manual {
         global $CFG, $DB;
 
         $username = strtolower($username);
-        $conditions = array('username' => $username);
+        $conditions = ['username' => $username];
         $user = $DB->get_record('user', $conditions);
 
         if (!$user) {
-            return array();
+            return [];
         }
 
-        $gpr = new grade_plugin_return(array('type' => 'report', 'plugin' => 'user', 'courseid' => $id, 'userid' => $user->id));
+        $gpr = new grade_plugin_return(['type' => 'report', 'plugin' => 'user', 'courseid' => $id, 'userid' => $user->id]);
         $context = context_course::instance($id);
         $report = new user_report($id, $gpr, $context, $user->id);
-
 
         // Get course total.
         $query = "select id
             from  {$CFG->prefix}grade_items
             where courseid = ?
             AND itemtype='course'";
-        $params = array($id);
+        $params = [$id];
         $cat_item = $DB->get_record_sql($query, $params);
 
         $query = "SELECT g.finalgrade,g.rawgrademax,g.rawgrademin
           FROM {$CFG->prefix}grade_grades g
          WHERE g.itemid = ?
            AND g.userid =  ?";
-        $params = array($cat_item->id, $user->id);
+        $params = [$cat_item->id, $user->id];
 
         $grade = $DB->get_record_sql($query, $params);
 
@@ -2002,10 +1960,10 @@ class auth_plugin_joomdle extends auth_plugin_manual {
             $total['grademax'] = (float) 0;
             $total['grademin'] = (float) 0;
         }
-        $total['items'] = array();
+        $total['items'] = [];
         $total['letter'] = '';
 
-        if (! $grade_grade = grade_grade::fetch(array('itemid' => $cat_item->id, 'userid' => $user->id))) {
+        if (! $grade_grade = grade_grade::fetch(['itemid' => $cat_item->id, 'userid' => $user->id])) {
             $grade_grade = new grade_grade();
             $grade_grade->userid = $user->id;
             $grade_grade->itemid = $cat_item->id;
@@ -2014,7 +1972,7 @@ class auth_plugin_joomdle extends auth_plugin_manual {
 
         $total['letter'] = grade_format_gradevalue($total['finalgrade'], $grade_grade->grade_item, true, GRADE_DISPLAY_TYPE_LETTER);
 
-        $data = array();
+        $data = [];
         $data[] = $total;
 
         $query = "select {$CFG->prefix}grade_categories.fullname, {$CFG->prefix}grade_items.id,
@@ -2023,15 +1981,14 @@ class auth_plugin_joomdle extends auth_plugin_manual {
                     where {$CFG->prefix}grade_categories.id = {$CFG->prefix}grade_items.iteminstance
                     and {$CFG->prefix}grade_items.courseid = ? and (itemtype='category' or itemtype='course')";
 
-        $params = array($id);
+        $params = [$id];
         $cats = $DB->get_records_sql($query, $params);
 
         foreach ($cats as $r) {
             if ($r->fullname != '?') {
                 $e['fullname'] = $r->fullname;
-            }
-            else {
-            $e['fullname'] = '';
+            } else {
+                $e['fullname'] = '';
             }
             $e['grademax'] = (float) $r->grademax;
 
@@ -2043,24 +2000,23 @@ class auth_plugin_joomdle extends auth_plugin_manual {
                 where iteminstance = ?
                 AND courseid = ?
                 AND itemtype = 'category'";
-            $params = array($cat_id, $id);
+            $params = [$cat_id, $id];
             $cat_item = $DB->get_record_sql($query, $params);
 
             $query = "SELECT g.finalgrade
               FROM {$CFG->prefix}grade_grades g
              WHERE g.itemid = ?
                AND g.userid =  ?";
-            $params = array($cat_item->id, $user->id);
+            $params = [$cat_item->id, $user->id];
 
             $grade = $DB->get_record_sql($query, $params);
             if ($grade) {
                 $e['finalgrade'] = (float) $grade->finalgrade;
-            }
-            else {
-            $e['finalgrade'] = (float) 0;
+            } else {
+                $e['finalgrade'] = (float) 0;
             }
 
-            if (! $grade_grade = grade_grade::fetch(array('itemid' => $cat_item->id, 'userid' => $user->id))) {
+            if (! $grade_grade = grade_grade::fetch(['itemid' => $cat_item->id, 'userid' => $user->id])) {
                 $grade_grade = new grade_grade();
                 $grade_grade->userid = $user->id;
                 $grade_grade->itemid = $cat_item->id;
@@ -2076,9 +2032,9 @@ class auth_plugin_joomdle extends auth_plugin_manual {
             $query .= ' AND hidden = 0';
             $query .= " order by sortorder";
 
-            $params = array($cat_id);
+            $params = [$cat_id];
             $items = $DB->get_records_sql($query, $params);
-            $category_items = array();
+            $category_items = [];
 
             if (count($items) == 0) {
                 continue;
@@ -2092,23 +2048,23 @@ class auth_plugin_joomdle extends auth_plugin_manual {
                 $category_item['module'] = $item->itemmodule;
                 $category_item['iteminstance'] = $item->iteminstance;
 
-                $conditions = array('name' => $item->itemmodule);
+                $conditions = ['name' => $item->itemmodule];
                 $module = $DB->get_record('modules', $conditions);
 
                 if ($module) {
-                    $conditions = array('course' => $item->courseid, 'module' => $module->id, 'instance' => $item->iteminstance);
+                    $conditions = ['course' => $item->courseid, 'module' => $module->id, 'instance' => $item->iteminstance];
                     $cm = $DB->get_record('course_modules', $conditions);
 
                     $category_item['course_module_id'] = $cm->id;
 
                     switch ($item->itemmodule) {
                         case 'quiz':
-                            $conditions = array('id' => $item->iteminstance);
+                            $conditions = ['id' => $item->iteminstance];
                             $quiz = $DB->get_record('quiz', $conditions);
                             $category_item['due'] = $quiz->timeclose;
                             break;
                         case 'assignment':
-                            $conditions = array('id' => $item->iteminstance);
+                            $conditions = ['id' => $item->iteminstance];
                             $assignment = $DB->get_record('assignment', $conditions);
                             $category_item['due'] = $assignment->timedue;
                             break;
@@ -2125,11 +2081,11 @@ class auth_plugin_joomdle extends auth_plugin_manual {
                   FROM {$CFG->prefix}grade_grades g
                  WHERE g.itemid = ?
                    AND g.userid =  ?";
-                $params = array($item->id, $user->id);
+                $params = [$item->id, $user->id];
 
                 $grade = $DB->get_record_sql($query, $params);
 
-                if (! $grade_grade = grade_grade::fetch(array('itemid' => $item->id, 'userid' => $user->id))) {
+                if (! $grade_grade = grade_grade::fetch(['itemid' => $item->id, 'userid' => $user->id])) {
                     $grade_grade = new grade_grade();
                     $grade_grade->userid = $user->id;
                     $grade_grade->itemid = $item->id;
@@ -2137,9 +2093,9 @@ class auth_plugin_joomdle extends auth_plugin_manual {
 
                 $grade_grade->load_grade_item();
 
-                if (($grade) && ($grade->finalgrade !== NULL)) {
+                if (($grade) && ($grade->finalgrade !== null)) {
                     $category_item['finalgrade'] = (float) $grade->finalgrade;
-                    //$formatted_grade = grade_format_gradevalue($grade->finalgrade, $grade_grade->grade_item, true, GRADE_DISPLAY_TYPE_REAL);
+                    // $formatted_grade = grade_format_gradevalue($grade->finalgrade, $grade_grade->grade_item, true, GRADE_DISPLAY_TYPE_REAL);
                     $formatted_grade = grade_format_gradevalue($grade->finalgrade, $grade_grade->grade_item, true);
                     $category_item['finalgrade'] = $formatted_grade;
                     $category_item['feedback'] = $grade->feedback;
@@ -2150,8 +2106,7 @@ class auth_plugin_joomdle extends auth_plugin_manual {
                             true,
                             GRADE_DISPLAY_TYPE_LETTER
                         );
-                    }
-                    else {
+                    } else {
                         $category_item['letter'] = '';
                     }
                 } else {
@@ -2170,9 +2125,8 @@ class auth_plugin_joomdle extends auth_plugin_manual {
 
         // Don't return total if there is nothing else.
         if (count($data) == 1) {
-            $rdo['data'] = array();
-        }
-        else {
+            $rdo['data'] = [];
+        } else {
             $rdo['data'] = $data;
         }
 
@@ -2187,7 +2141,7 @@ class auth_plugin_joomdle extends auth_plugin_manual {
         $sql = "SELECT rawgrade
             FROM {$CFG->prefix}grade_grades" .
             " WHERE itemid = ? and userid = ?";
-        $params = array($item_id, $user_id);
+        $params = [$item_id, $user_id];
         $grade = $DB->get_records_sql($sql, $params);
 
         return $grade;
@@ -2200,18 +2154,19 @@ class auth_plugin_joomdle extends auth_plugin_manual {
         /* 5 indica estudiantes (table mdl_role) */
         $alumnos = get_role_users(5, $context);
 
-        $conditions = array('courseid' => $id, 'enrol' => 'manual');
+        $conditions = ['courseid' => $id, 'enrol' => 'manual'];
         $enrol = $DB->get_record('enrol', $conditions);
 
         if (!$enrol) {
-            return array();
+            return [];
         }
 
-        $students = array();
+        $students = [];
 
         foreach ($alumnos as $alumno) {
             if ($search) {
-                if ((stripos($alumno->username, $search) === false)
+                if (
+                    (stripos($alumno->username, $search) === false)
                     && (stripos($alumno->firstname, $search) === false)
                     && (stripos($alumno->lastname, $search) === false)
                     && (stripos($alumno->idnumber, $search) === false)
@@ -2225,7 +2180,7 @@ class auth_plugin_joomdle extends auth_plugin_manual {
             switch ($active) {
                 case 0:
                     // Skip non active enrolments.
-                    $conditions = array('username' => $username);
+                    $conditions = ['username' => $username];
                     $user = $DB->get_record('user', $conditions);
 
                     if (!$user) {
@@ -2233,7 +2188,7 @@ class auth_plugin_joomdle extends auth_plugin_manual {
                         break;
                     }
 
-                    $conditions = array('enrolid' => $enrol->id, 'userid' => $user->id);
+                    $conditions = ['enrolid' => $enrol->id, 'userid' => $user->id];
                     $ue = $DB->get_record('user_enrolments', $conditions);
                     if ($ue->status) {
                         $include = false;
@@ -2241,7 +2196,7 @@ class auth_plugin_joomdle extends auth_plugin_manual {
                     break;
                 case 1:
                     // Skip active enrolments.
-                    $conditions = array('username' => $username);
+                    $conditions = ['username' => $username];
                     $user = $DB->get_record('user', $conditions);
 
                     if (!$user) {
@@ -2249,7 +2204,7 @@ class auth_plugin_joomdle extends auth_plugin_manual {
                         break;
                     }
 
-                    $conditions = array('enrolid' => $enrol->id, 'userid' => $user->id);
+                    $conditions = ['enrolid' => $enrol->id, 'userid' => $user->id];
                     $ue = $DB->get_record('user_enrolments', $conditions);
                     if (!$ue->status) {
                         $include = false;
@@ -2288,16 +2243,16 @@ class auth_plugin_joomdle extends auth_plugin_manual {
 
         $id = addslashes($id);
         $courseshown = $id;
-        $coursestoload    = array($courseshown => $id);
-        $groupeventsfrom = array($courseshown => 1);
+        $coursestoload    = [$courseshown => $id];
+        $groupeventsfrom = [$courseshown => 1];
 
         $filtercourse = $DB->get_records_list('course', 'id', $coursestoload);
 
-        $gs = array();
+        $gs = [];
         $true = true;
         if ($CFG->version >= 2018120301) {
-            list($courses, $group, $user) = calendar_set_filters($filtercourse, $true);
-            $courses = array($id => $id);
+            [$courses, $group, $user] = calendar_set_filters($filtercourse, $true);
+            $courses = [$id => $id];
 
             if ($username != '') {
                 // Show only events for groups where user is a member.
@@ -2320,7 +2275,7 @@ class auth_plugin_joomdle extends auth_plugin_manual {
 
             $daysinfuture = CALENDAR_DEFAULT_UPCOMING_LOOKAHEAD;
             $maxevents = CALENDAR_DEFAULT_UPCOMING_MAXEVENTS;
-            $display = new \stdClass;
+            $display = new \stdClass();
             $display->range = $daysinfuture; // How many days in the future we 'll look.
             $display->maxevents = $maxevents;
             $now = time(); // We 'll need this later.
@@ -2328,10 +2283,10 @@ class auth_plugin_joomdle extends auth_plugin_manual {
             $display->tstart = $usermidnighttoday;
             $display->tend = usergetmidnight($display->tstart + DAYSECS * $display->range + 3 * HOURSECS) - 1;
 
-            $events = calendar_get_legacy_events($display->tstart, $display->tend, array($user->id), $gs, $courses);
+            $events = calendar_get_legacy_events($display->tstart, $display->tend, [$user->id], $gs, $courses);
         } else if ($CFG->version >= 2011070100) {
-            list($courses, $group, $user) = calendar_set_filters($filtercourse, $true);
-            $courses = array($id => $id);
+            [$courses, $group, $user] = calendar_set_filters($filtercourse, $true);
+            $courses = [$id => $id];
 
             if ($username != '') {
                 // Show only events for groups where user is a member.
@@ -2370,9 +2325,9 @@ class auth_plugin_joomdle extends auth_plugin_manual {
             );
         }
 
-        $data = array();
+        $data = [];
         foreach ($events as $r) {
-            $e = array();
+            $e = [];
             $e['name'] = $r->name;
             $e['timestart'] = $r->timestart;
             $e['courseid'] = $r->courseid;
@@ -2392,25 +2347,25 @@ class auth_plugin_joomdle extends auth_plugin_manual {
     public function get_news_items($id) {
         global $CFG, $DB;
 
-        $conditions = array('id' => $id);
+        $conditions = ['id' => $id];
         $COURSE = $DB->get_record('course', $conditions);
 
         if (!$forum = forum_get_course_forum($COURSE->id, 'news')) {
-            return array();
+            return [];
         }
 
         $modinfo = get_fast_modinfo($COURSE);
         if (empty($modinfo->instances['forum'][$forum->id])) {
-            return array();
+            return [];
         }
         $cm = $modinfo->instances['forum'][$forum->id];
 
         // Get all the recent discussions we're allowed to see.
         if (! $discussions = forum_get_discussions($cm, 'p.modified DESC', false, -1, $COURSE->newsitems)) {
-            return array();
+            return [];
         }
 
-        $data = array();
+        $data = [];
         foreach ($discussions as $r) {
             $e['discussion'] = $r->discussion;
             $e['subject'] = $r->subject;
@@ -2435,10 +2390,10 @@ class auth_plugin_joomdle extends auth_plugin_manual {
             where {$CFG->prefix}grade_categories.id = {$CFG->prefix}grade_items.iteminstance
             and {$CFG->prefix}grade_items.courseid = ? and itemtype='category';";
 
-        $params = array($id);
+        $params = [$id];
         $cats = $DB->get_records_sql($query, $params);
 
-        $data = array();
+        $data = [];
         foreach ($cats as $r) {
             $e['fullname'] = $r->fullname;
             $e['grademax'] = $r->grademax;
@@ -2453,19 +2408,19 @@ class auth_plugin_joomdle extends auth_plugin_manual {
     public function get_rubrics($grade_item_id) {
         global $CFG, $DB;
 
-        $conditions = array('id' => $grade_item_id);
+        $conditions = ['id' => $grade_item_id];
         $grade_item = $DB->get_record('grade_items', $conditions);
 
         $assign_data['assign_name'] = $grade_item->itemname;
-        $assign_data['definitions'] = array();
+        $assign_data['definitions'] = [];
 
-        $conditions = array('name' => $grade_item->itemmodule);
+        $conditions = ['name' => $grade_item->itemmodule];
         $module = $DB->get_record('modules', $conditions);
         if (!$module) {
             return $assign_data;
         }
 
-        $conditions = array('course' => $grade_item->courseid, 'module' => $module->id, 'instance' => $grade_item->iteminstance);
+        $conditions = ['course' => $grade_item->courseid, 'module' => $module->id, 'instance' => $grade_item->iteminstance];
         $cm = $DB->get_record('course_modules', $conditions);
 
         if (!$cm) {
@@ -2474,30 +2429,30 @@ class auth_plugin_joomdle extends auth_plugin_manual {
 
         $context = context_module::instance($cm->id);
 
-        $conditions = array('contextid' => $context->id);
+        $conditions = ['contextid' => $context->id];
         $area = $DB->get_record('grading_areas', $conditions);
 
         if (!$area) {
             return $assign_data;
         }
 
-        $conditions = array('areaid' => $area->id);
+        $conditions = ['areaid' => $area->id];
         $definitions = $DB->get_records('grading_definitions', $conditions);
 
-        $data = array();
+        $data = [];
         foreach ($definitions as $definition) {
             $d['definition'] = $definition->name;
-            $conditions = array('definitionid' => $definition->id);
+            $conditions = ['definitionid' => $definition->id];
             $criteria = $DB->get_records('gradingform_rubric_criteria', $conditions);
 
-            $d['criteria'] = array();
+            $d['criteria'] = [];
             foreach ($criteria as $c) {
                 $data_criteria['description'] = $c->description;
 
-                $conditions = array('criterionid' => $c->id);
+                $conditions = ['criterionid' => $c->id];
                 $levels = $DB->get_records('gradingform_rubric_levels', $conditions);
 
-                $data_levels = array();
+                $data_levels = [];
                 foreach ($levels as $level) {
                     $dl['definition'] = $level->definition;
                     $dl['score'] = $level->score;
@@ -2521,7 +2476,7 @@ class auth_plugin_joomdle extends auth_plugin_manual {
 
         global $CFG, $DB;
         $username = strtolower($username);
-        $conditions = array('username' => $username);
+        $conditions = ['username' => $username];
         $user = $DB->get_record('user', $conditions);
         if ($user) {
             return 1;
@@ -2593,7 +2548,7 @@ class auth_plugin_joomdle extends auth_plugin_manual {
         profile_save_data($newuser);
 
         // Trigger event.
-        //     \core\event\user_created::create_from_userid($newuser->id)->trigger();
+        // \core\event\user_created::create_from_userid($newuser->id)->trigger();
 
         return $newuser;
     }
@@ -2608,17 +2563,17 @@ class auth_plugin_joomdle extends auth_plugin_manual {
     public function create_joomdle_user($username, $app = '') {
         global $CFG, $DB;
 
-        $newinfo = array();
+        $newinfo = [];
 
         $username = strtolower($username);
         // Crete new user if not exists.
-        $conditions = array('username' => $username);
+        $conditions = ['username' => $username];
         $user = $DB->get_record('user', $conditions);
         if (!$user) {
             $user = $this->create_joomdle_user_record($username, "", "joomdle", $userinfo);
 
             // Set first access as now.
-            $conditions = array('id' => $user->id);
+            $conditions = ['id' => $user->id];
             $DB->set_field('user', 'firstaccess', time(), $conditions);
         } else if ($user->auth == 'joomdle') {
             $needsupdate = false;
@@ -2628,7 +2583,6 @@ class auth_plugin_joomdle extends auth_plugin_manual {
 
             // Update user info.
             if ($newinfo = $this->get_userinfo($username)) {
-
                 $newinfo = truncate_userinfo($newinfo);
 
                 $updatekeys = array_keys($newinfo);
@@ -2664,7 +2618,7 @@ class auth_plugin_joomdle extends auth_plugin_manual {
                     $pic_url = $joomla_url . '/' . $newinfo['pic_url'];
                 }  // Only add joomla_url if it is not a full URL already.
                 else {
-                $pic_url = $newinfo['pic_url'];
+                    $pic_url = $newinfo['pic_url'];
                 }
 
                 $pic = $this->get_file($pic_url);
@@ -2676,7 +2630,7 @@ class auth_plugin_joomdle extends auth_plugin_manual {
                     $context = context_user::instance($user->id);
                     $rev = (int) process_new_icon($context, 'user', 'icon', 0, $tmp_file);
 
-                    $conditions = array('id' => $user->id);
+                    $conditions = ['id' => $user->id];
                     $DB->set_field('user', 'picture', $rev, $conditions);
                 }
             }
@@ -2692,12 +2646,12 @@ class auth_plugin_joomdle extends auth_plugin_manual {
                     $data->userid = $user->id;
 
                     // Moodle does not like NULL values here
-                    if ($data->data === NULL) {
+                    if ($data->data === null) {
                         continue;
                     }
 
                     /* update custom field */
-                    if ($dataid = $DB->get_field('user_info_data', 'id', array('userid' => $user->id, 'fieldid' => $data->fieldid))) {
+                    if ($dataid = $DB->get_field('user_info_data', 'id', ['userid' => $user->id, 'fieldid' => $data->fieldid])) {
                         $data->id = $dataid;
                         $DB->update_record('user_info_data', $data);
                     } else {
@@ -2747,7 +2701,7 @@ class auth_plugin_joomdle extends auth_plugin_manual {
             case 'exact':
                 $text           = '%' . $text . '%';
 
-                $likes = array();
+                $likes = [];
                 $like = $DB->sql_like('co.fullname', '?', false);
                 $likes[] = $like;
                 $params[] = $text;
@@ -2765,12 +2719,12 @@ class auth_plugin_joomdle extends auth_plugin_manual {
             case 'any':
             default:
                 $words = explode(' ', $text);
-                $wheres = array();
-                $wheres2 = array();
+                $wheres = [];
+                $wheres2 = [];
 
-                $params = array();
+                $params = [];
                 foreach ($words as $word) {
-                    $likes = array();
+                    $likes = [];
 
                     $word           = '%' . $word . '%';
                     $like = $DB->sql_like('co.fullname', '?', false);
@@ -2834,7 +2788,7 @@ class auth_plugin_joomdle extends auth_plugin_manual {
 
         $results = $DB->get_records_sql($query, $params, 0, $limit);
         $options['noclean'] = true;
-        $data = array();
+        $data = [];
 
         foreach ($results as $r) {
             $c = get_object_vars($r);
@@ -2864,13 +2818,13 @@ class auth_plugin_joomdle extends auth_plugin_manual {
         // Set language
         $SESSION->lang = $lang;
 
-        $params = array();
+        $params = [];
 
         switch ($phrase) {
             case 'exact':
                 $text           = '%' . $text . '%';
 
-                $likes = array();
+                $likes = [];
                 $like = $DB->sql_like('ca.name', '?', false);
                 $likes[] = $like;
                 $params[] = $text;
@@ -2885,11 +2839,11 @@ class auth_plugin_joomdle extends auth_plugin_manual {
             case 'any':
             default:
                 $words = explode(' ', $text);
-                $wheres = array();
+                $wheres = [];
                 foreach ($words as $word) {
                     $word           = '%' . $word . '%';
 
-                    $likes = array();
+                    $likes = [];
 
                     $like = $DB->sql_like('ca.name', '?', false);
                     $likes[] = $like;
@@ -2933,7 +2887,7 @@ class auth_plugin_joomdle extends auth_plugin_manual {
         $results = $DB->get_records_sql($query, $params, 0, $limit);
 
         $options['noclean'] = true;
-        $data = array();
+        $data = [];
         foreach ($results as $r) {
             $c = get_object_vars($r);
             $c['cat_name'] = format_string($c['cat_name']);
@@ -2954,7 +2908,7 @@ class auth_plugin_joomdle extends auth_plugin_manual {
             case 'exact':
                 $text           = '%' . $text . '%';
 
-                $likes = array();
+                $likes = [];
                 $like = $DB->sql_like('cs.summary', '?', false);
                 $likes[] = $like;
                 $params[] = $text;
@@ -2973,7 +2927,7 @@ class auth_plugin_joomdle extends auth_plugin_manual {
                 foreach ($words as $word) {
                     $word           = '%' . $word . '%';
 
-                    $likes = array();
+                    $likes = [];
 
                     $like = $DB->sql_like('cs.summary', '?', false);
                     $likes[] = $like;
@@ -3032,7 +2986,7 @@ class auth_plugin_joomdle extends auth_plugin_manual {
         $results = $DB->get_records_sql($query, $params, 0, $limit);
 
         $options['noclean'] = true;
-        $data = array();
+        $data = [];
         foreach ($results as $r) {
             $c = get_object_vars($r);
             $c['fullname'] = format_string($c['fullname']);
@@ -3040,9 +2994,8 @@ class auth_plugin_joomdle extends auth_plugin_manual {
             $c['cat_name'] = format_string($c['cat_name']);
             if ($c['sec_name']) {
                 $c['sec_name'] = format_string($c['name']);
-            }
-            else {
-            $c['sec_name'] = get_string('topic') . ' ' . $c['section'];
+            } else {
+                $c['sec_name'] = get_string('topic') . ' ' . $c['section'];
             }
             $data[] = $c;
         }
@@ -3055,11 +3008,11 @@ class auth_plugin_joomdle extends auth_plugin_manual {
 
         $username = strtolower($username);
 
-        $conditions = array('username' => $username);
+        $conditions = ['username' => $username];
         $user = $DB->get_record('user', $conditions);
 
         foreach ($courses as $course) {
-            $conditions = array('id' => $course['id']);
+            $conditions = ['id' => $course['id']];
             $course_db = $DB->get_record('course', $conditions);
 
             if (!$course_db) {
@@ -3078,14 +3031,14 @@ class auth_plugin_joomdle extends auth_plugin_manual {
 
         $username = strtolower($username);
         /* Create the user before if it is not created yet */
-        $conditions = array('username' => $username);
+        $conditions = ['username' => $username];
         $user = $DB->get_record('user', $conditions);
         if (!$user) {
             $this->create_joomdle_user($username);
         }
 
         $user = $DB->get_record('user', $conditions);
-        $conditions = array('id' => $course_id);
+        $conditions = ['id' => $course_id];
         $course = $DB->get_record('course', $conditions);
 
         if (!$course) {
@@ -3094,26 +3047,26 @@ class auth_plugin_joomdle extends auth_plugin_manual {
 
         // First, check if user is already enroled but suspended, so we just need to enable it.
 
-        $conditions = array('courseid' => $course_id, 'enrol' => 'manual');
+        $conditions = ['courseid' => $course_id, 'enrol' => 'manual'];
         $enrol = $DB->get_record('enrol', $conditions);
 
         if (!$enrol) {
             return 0;
         }
 
-        $conditions = array('username' => $username);
+        $conditions = ['username' => $username];
         $user = $DB->get_record('user', $conditions);
 
         if (!$user) {
             return 0;
         }
 
-        $conditions = array('enrolid' => $enrol->id, 'userid' => $user->id);
+        $conditions = ['enrolid' => $enrol->id, 'userid' => $user->id];
         $ue = $DB->get_record('user_enrolments', $conditions);
 
         // Update role info.
         if ($ue) {
-            $conditions = array('contextid' => $context->id, 'userid' => $user->id);
+            $conditions = ['contextid' => $context->id, 'userid' => $user->id];
             $ra = $DB->get_record('role_assignments', $conditions);
 
             if (!$ra) {
@@ -3127,8 +3080,7 @@ class auth_plugin_joomdle extends auth_plugin_manual {
 
         if ($CFG->version >= 2011061700) {
             $manager = new course_enrolment_manager($PAGE, $course);
-        }
-        else {
+        } else {
             $manager = new course_enrolment_manager($course);
         }
 
@@ -3167,7 +3119,7 @@ class auth_plugin_joomdle extends auth_plugin_manual {
     public function get_course_groups($id) {
         $groups = groups_get_all_groups($id);
 
-        $rdo = array();
+        $rdo = [];
 
         foreach ($groups as $group) {
             $g['id'] = $group->id;
@@ -3183,10 +3135,11 @@ class auth_plugin_joomdle extends auth_plugin_manual {
     public function get_group_members($group_id, $search = '') {
         $users = groups_get_members($group_id);
 
-        $rdo = array();
+        $rdo = [];
         foreach ($users as $u) {
             if ($search) {
-                if ((stripos($u->username, $search) === false)
+                if (
+                    (stripos($u->username, $search) === false)
                     && (stripos($u->firstname, $search) === false)
                     && (stripos($u->lastname, $search) === false)
                     && (stripos($u->idnumber, $search) === false)
@@ -3209,7 +3162,7 @@ class auth_plugin_joomdle extends auth_plugin_manual {
     public function get_courses_and_groups() {
         $courses = $this->list_courses();
 
-        $c = array();
+        $c = [];
         foreach ($courses as $course) {
             $course_data['remoteid'] = $course['remoteid'];
             $course_data['fullname'] = $course['fullname'];
@@ -3228,7 +3181,7 @@ class auth_plugin_joomdle extends auth_plugin_manual {
 
         $username = strtolower($username);
 
-        $conditions = array('username' => $username);
+        $conditions = ['username' => $username];
         $user = $DB->get_record('user', $conditions);
 
         if (!$user) {
@@ -3241,7 +3194,7 @@ class auth_plugin_joomdle extends auth_plugin_manual {
         }
 
         foreach ($courses as $c) {
-            $conditions = array('id' => $c['id']);
+            $conditions = ['id' => $c['id']];
             $course = $DB->get_record('course', $conditions);
 
             if (!$course) {
@@ -3259,14 +3212,14 @@ class auth_plugin_joomdle extends auth_plugin_manual {
 
         $username = strtolower($username);
         /* Create the user before if it is not created yet */
-        $conditions = array('username' => $username);
+        $conditions = ['username' => $username];
         $user = $DB->get_record('user', $conditions);
         if (!$user) {
             $this->create_joomdle_user($username);
         }
 
         $user = $DB->get_record('user', $conditions);
-        $conditions = array('id' => $course_id);
+        $conditions = ['id' => $course_id];
         $course = $DB->get_record('course', $conditions);
 
         if (!$course) {
@@ -3276,8 +3229,7 @@ class auth_plugin_joomdle extends auth_plugin_manual {
         // Get enrol start and end dates of manual enrolment plugin.
         if ($CFG->version >= 2011061700) {
             $manager = new course_enrolment_manager($PAGE, $course);
-        }
-        else {
+        } else {
             $manager = new course_enrolment_manager($course);
         }
 
@@ -3324,21 +3276,21 @@ class auth_plugin_joomdle extends auth_plugin_manual {
 
         // First, check if user is already enroled but suspended, so we just need to enable it.
 
-        $conditions = array('courseid' => $course_id, 'enrol' => 'manual');
+        $conditions = ['courseid' => $course_id, 'enrol' => 'manual'];
         $enrol = $DB->get_record('enrol', $conditions);
 
         if (!$enrol) {
             return 0;
         }
 
-        $conditions = array('username' => $username);
+        $conditions = ['username' => $username];
         $user = $DB->get_record('user', $conditions);
 
         if (!$user) {
             return 0;
         }
 
-        $conditions = array('enrolid' => $enrol->id, 'userid' => $user->id);
+        $conditions = ['enrolid' => $enrol->id, 'userid' => $user->id];
         $ue = $DB->get_record('user_enrolments', $conditions);
 
         if ($ue) {
@@ -3353,7 +3305,7 @@ class auth_plugin_joomdle extends auth_plugin_manual {
 
             // Update or insert role if needed.
             $context = context_course::instance($course_id);
-            $conditions = array('contextid' => $context->id, 'userid' => $user->id, 'roleid' => $roleid);
+            $conditions = ['contextid' => $context->id, 'userid' => $user->id, 'roleid' => $roleid];
             $ra = $DB->get_record('role_assignments', $conditions);
 
             if (!$ra) {
@@ -3388,7 +3340,7 @@ class auth_plugin_joomdle extends auth_plugin_manual {
             FROM  {$CFG->prefix}course_categories
             WHERE id = ?;";
 
-        $params = array($cat_id);
+        $params = [$cat_id];
         $rdo = $DB->get_records_sql($query, $params);
         $row = (reset($rdo));
         return format_string($row->name);
@@ -3407,9 +3359,8 @@ class auth_plugin_joomdle extends auth_plugin_manual {
 
         if ($limit) {
             $limit_c = " LIMIT $limitstart, $limit";
-        }
-        else {
-        $limit_c = "";
+        } else {
+            $limit_c = "";
         }
 
         $allowedorders = [
@@ -3432,16 +3383,15 @@ class auth_plugin_joomdle extends auth_plugin_manual {
 
         if ($order != "") {
             $order_c = "  ORDER BY $order $order_dir";
-        }
-        else {
-        $order_c = "";
+        } else {
+            $order_c = "";
         }
 
         $limitstart = max(0, (int)$limitstart);
         $limit = max(0, (int)$limit);
 
         if ($search) {
-            $params = array();
+            $params = [];
             $likeu = $DB->sql_like('username', '?', false);
             $params[] = "%$search%";
             $likee = $DB->sql_like('email', '?', false);
@@ -3464,14 +3414,13 @@ class auth_plugin_joomdle extends auth_plugin_manual {
         }
 
         $i = 0;
-        $u = array();
+        $u = [];
         foreach ($users as $user) {
             $u[$i] = get_object_vars($user);
             if (in_array($user->id, $a)) {
                 $u[$i]['admin'] = '1';
-            }
-            else {
-            $u[$i]['admin'] = '0';
+            } else {
+                $u[$i]['admin'] = '0';
             }
 
             $u[$i]['name'] = $user->firstname . ' ' . $user->lastname;
@@ -3494,7 +3443,7 @@ class auth_plugin_joomdle extends auth_plugin_manual {
         $userlist = "'" . implode("','", $a) . "'";
 
         if ($search) {
-            $params = array();
+            $params = [];
             $likeu = $DB->sql_like('username', '?', false);
             $params[] = "%$search%";
             $likee = $DB->sql_like('email', '?', false);
@@ -3529,16 +3478,16 @@ class auth_plugin_joomdle extends auth_plugin_manual {
         $a[] = 1; // Guest user.
         $adminlist = "'" . implode("','", $a) . "'";
 
-        $usernames = array('this_is_a_kludge_to_avoid_empty_array');
+        $usernames = ['this_is_a_kludge_to_avoid_empty_array'];
         foreach ($users as $user) {
             $username = strtolower($user['username']);
             $usernames[] = $username;
         }
 
-        list($notinsql, $params) = $DB->get_in_or_equal($usernames, SQL_PARAMS_QM, 'param', false);
+        [$notinsql, $params] = $DB->get_in_or_equal($usernames, SQL_PARAMS_QM, 'param', false);
 
-        //        $userlist = "'".implode("','", $usernames)."'";
-        $users = array();
+        // $userlist = "'".implode("','", $usernames)."'";
+        $users = [];
         if ($search) {
             $likeu = $DB->sql_like('username', '?', false);
             $params[] = "%$search%";
@@ -3563,14 +3512,13 @@ class auth_plugin_joomdle extends auth_plugin_manual {
 
         $n = count($users);
         $i = 0;
-        $u = array();
+        $u = [];
         foreach ($users as $user) {
             $u[$i] = get_object_vars($user);
             if (in_array($user->id, $a)) {
                 $u[$i]['admin'] = '1';
-            }
-            else {
-            $u[$i]['admin'] = '0';
+            } else {
+                $u[$i]['admin'] = '0';
             }
 
             $u[$i]['name'] = $user->firstname . ' ' . $user->lastname;
@@ -3585,7 +3533,7 @@ class auth_plugin_joomdle extends auth_plugin_manual {
         global $DB;
 
         $username = strtolower($username);
-        $conditions = array("username" => $username);
+        $conditions = ["username" => $username];
         $user = $DB->get_record("user", $conditions);
 
         if ($user) {
@@ -3599,7 +3547,7 @@ class auth_plugin_joomdle extends auth_plugin_manual {
         global $DB;
 
         $username = strtolower($username);
-        $conditions = array("username" => $username);
+        $conditions = ["username" => $username];
         $user = $DB->get_record("user", $conditions);
 
         if (!$user) {
@@ -3613,7 +3561,7 @@ class auth_plugin_joomdle extends auth_plugin_manual {
         global $DB, $CFG;
 
         $username = strtolower($username);
-        $conditions = array("username" => $username);
+        $conditions = ["username" => $username];
         $user = $DB->get_record("user", $conditions);
 
         $u['username'] = $user->username;
@@ -3652,11 +3600,11 @@ class auth_plugin_joomdle extends auth_plugin_manual {
             FROM {$CFG->prefix}user_info_field as f, {$CFG->prefix}user_info_data d
             WHERE f.id=d.fieldid and userid = ?";
 
-        $params = array($id);
+        $params = [$id];
         $records = $DB->get_records_sql($query, $params);
 
         $i = 0;
-        $u['custom_fields'] = array();
+        $u['custom_fields'] = [];
         foreach ($records as $field) {
             $u['custom_fields'][$i]['id'] = $field->id;
             $u['custom_fields'][$i]['data'] = $field->data;
@@ -3674,7 +3622,7 @@ class auth_plugin_joomdle extends auth_plugin_manual {
 
         $records = $DB->get_records_sql($query);
         $i = 0;
-        $custom_fields = array();
+        $custom_fields = [];
         foreach ($records as $field) {
             $custom_fields[$i]['id'] = $field->id;
             $custom_fields[$i]['name'] = $field->name;
@@ -3688,7 +3636,7 @@ class auth_plugin_joomdle extends auth_plugin_manual {
     public function user_details_by_id($id) {
         global $DB;
 
-        $conditions = array("id" => $id);
+        $conditions = ["id" => $id];
         $user = $DB->get_record("user", $conditions);
 
         $u['username'] = $user->username;
@@ -3699,14 +3647,14 @@ class auth_plugin_joomdle extends auth_plugin_manual {
     public function update_session($username) {
         global $DB, $CFG;
 
-        $conditions = array("username" => $username);
+        $conditions = ["username" => $username];
         $user = $DB->get_record("user", $conditions);
 
         if (!$user) {
             return false;
         }
 
-        $params = array($user->id);
+        $params = [$user->id];
         $sql = "SELECT sid FROM {$CFG->prefix}sessions " .
             " WHERE userid = ? " .
             " ORDER BY timemodified DESC LIMIT 1";
@@ -3719,7 +3667,7 @@ class auth_plugin_joomdle extends auth_plugin_manual {
 
         $session_obj = array_shift($session);
 
-        $conditions = array('sid' => $session_obj->sid);
+        $conditions = ['sid' => $session_obj->sid];
         $session = $DB->get_record('sessions', $conditions);
 
         if (!$session) {
@@ -3735,7 +3683,7 @@ class auth_plugin_joomdle extends auth_plugin_manual {
     public function migrate_to_joomdle($username) {
         global $DB;
         $username = strtolower($username);
-        $conditions = array('username' => $username);
+        $conditions = ['username' => $username];
         $DB->set_field('user', 'auth', 'joomdle', $conditions);
 
         return true;
@@ -3748,20 +3696,20 @@ class auth_plugin_joomdle extends auth_plugin_manual {
 
         $username = strtolower($username);
         $whereclause = '';
-        $params = array();
+        $params = [];
         if ($username == 'admin') {
             $whereclause .= ' (groupid = 0 AND courseid = 1) ';
         } else {
             $user = get_complete_user_data('username', $username);
 
             if (!$user) {
-                return array();
+                return [];
             }
 
-            $w = array();
-            $params1 = array();
-            $params2 = array();
-            $cursos_ids = array();
+            $w = [];
+            $params1 = [];
+            $params2 = [];
+            $cursos_ids = [];
             foreach ($cursosid as $course) {
                 $course_id = $course['id'];
                 $cursos_ids[] = $course_id;
@@ -3776,13 +3724,13 @@ class auth_plugin_joomdle extends auth_plugin_manual {
                     $params1[] = $course_id;
                     $params1[] = $groups['id'];
                 }
-*/
+                */
             }
 
             $whereclause = ' (userid = ? AND courseid = 0 AND groupid = 0)';
             $params1[] = $user->id;
 
-            list($insql, $params2) = $DB->get_in_or_equal($cursos_ids);
+            [$insql, $params2] = $DB->get_in_or_equal($cursos_ids);
 
             $params = array_merge($params1, $params2);
 
@@ -3793,11 +3741,11 @@ class auth_plugin_joomdle extends auth_plugin_manual {
             $whereclause .= " OR  (groupid = 0 AND courseid $insql) ";
         }
         $whereclause .= ' AND visible = 1';
-        //          file_put_contents ("/var/moodledata/j6/temp/lala.txt", json_encode ($params2));
-        //            file_put_contents ("/var/moodledata/j6/temp/lala.txt", $whereclause . " " . json_encode ($params));
+        // file_put_contents ("/var/moodledata/j6/temp/lala.txt", json_encode ($params2));
+        // file_put_contents ("/var/moodledata/j6/temp/lala.txt", $whereclause . " " . json_encode ($params));
         $events = $DB->get_records_select('event', $whereclause, $params);
 
-        $data = array();
+        $data = [];
         foreach ($events as $event) {
             $e['name'] = $event->name . $whereclause;
             $e['timestart'] = $event->timestart;
@@ -3817,25 +3765,25 @@ class auth_plugin_joomdle extends auth_plugin_manual {
 
         if ($username != 'guest') {
             if ($course_id) {
-                if (! $course = $DB->get_record("course", array("id" => $course_id))) {
-                    return array();
+                if (! $course = $DB->get_record("course", ["id" => $course_id])) {
+                    return [];
                 }
-                $coursestoload = array($course_id => $course);
+                $coursestoload = [$course_id => $course];
             } else {
                 $coursestoload = enrol_get_users_courses($user->id, true);
             }
         } else {
-            if (! $course = $DB->get_record("course", array("id" => 1))) {
-                return array();
+            if (! $course = $DB->get_record("course", ["id" => 1])) {
+                return [];
             }
-            $coursestoload = array(1 => $course);
+            $coursestoload = [1 => $course];
         }
 
         // Save $USER var to reset it after use. It holds web service user. Probably not needed, but just in case...
         $ws_user = $USER;
         $USER = $user;
         $ignorefilters = false;
-        list($courses, $group, $user_id_not_used) = calendar_set_filters($coursestoload, $ignorefilters);
+        [$courses, $group, $user_id_not_used] = calendar_set_filters($coursestoload, $ignorefilters);
         $USER = $ws_user; // reset global var
 
         if (!$end_date) {
@@ -3844,20 +3792,19 @@ class auth_plugin_joomdle extends auth_plugin_manual {
 
         $events = calendar_get_events($start_date, $end_date, $user->id, $group, $courses);
 
-        $es = array();
+        $es = [];
         foreach ($events as $event) {
             // We filter user and site events here.
             if (($type == 'site') &&  ($event->eventtype != 'site')) {
                 continue;
-            }
-            else if ($type == 'user') {
+            } else if ($type == 'user') {
                 // We only show events with userid set as the user.
                 if ($event->userid != $user->id) {
                     continue;
                 }
             }
 
-            $e = array();
+            $e = [];
             $e['id'] = $event->id;
             $e['name'] = $event->name;
             $e['description'] = $event->description;
@@ -3873,10 +3820,10 @@ class auth_plugin_joomdle extends auth_plugin_manual {
     public function get_event($id) {
         global $DB;
 
-        $conditions = array('id' => $id);
+        $conditions = ['id' => $id];
         $event = $DB->get_record('event', $conditions);
 
-        $e = array();
+        $e = [];
         $e['id'] = $event->id;
         $e['name'] = $event->name;
         $e['description'] = $event->description;
@@ -3908,7 +3855,7 @@ class auth_plugin_joomdle extends auth_plugin_manual {
         $query = "SELECT id,questiontext, qtype
                 FROM {$CFG->prefix}question
                 WHERE id = ?";
-        $params = array($id);
+        $params = [$id];
         $record = $DB->get_record_sql($query, $params);
 
         $r = get_object_vars($record);
@@ -3966,7 +3913,7 @@ class auth_plugin_joomdle extends auth_plugin_manual {
 
         $username = strtolower($username);
 
-        $conditions = array('username' => $username);
+        $conditions = ['username' => $username];
         $user = $DB->get_record('user', $conditions);
 
         if (!$user) {
@@ -3974,7 +3921,7 @@ class auth_plugin_joomdle extends auth_plugin_manual {
         }
 
         foreach ($courses as $c) {
-            $conditions = array('id' => $c['id']);
+            $conditions = ['id' => $c['id']];
             $course = $DB->get_record('course', $conditions);
 
             if (!$course) {
@@ -3992,21 +3939,21 @@ class auth_plugin_joomdle extends auth_plugin_manual {
 
         $username = strtolower($username);
 
-        $conditions = array('courseid' => $course_id, 'enrol' => 'manual');
+        $conditions = ['courseid' => $course_id, 'enrol' => 'manual'];
         $enrol = $DB->get_record('enrol', $conditions);
 
         if (!$enrol) {
             return;
         }
 
-        $conditions = array('username' => $username);
+        $conditions = ['username' => $username];
         $user = $DB->get_record('user', $conditions);
 
         if (!$user) {
             return;
         }
 
-        $conditions = array('enrolid' => $enrol->id, 'userid' => $user->id);
+        $conditions = ['enrolid' => $enrol->id, 'userid' => $user->id];
         $ue = $DB->get_record('user_enrolments', $conditions);
 
         if (!$ue) {
@@ -4023,7 +3970,7 @@ class auth_plugin_joomdle extends auth_plugin_manual {
 
         $username = strtolower($username);
 
-        $conditions = array('username' => $username);
+        $conditions = ['username' => $username];
         $user = $DB->get_record('user', $conditions);
 
         if (!$user) {
@@ -4031,7 +3978,7 @@ class auth_plugin_joomdle extends auth_plugin_manual {
         }
 
         foreach ($courses as $c) {
-            $conditions = array('id' => $c['id']);
+            $conditions = ['id' => $c['id']];
             $course = $DB->get_record('course', $conditions);
 
             if (!$course) {
@@ -4050,33 +3997,33 @@ class auth_plugin_joomdle extends auth_plugin_manual {
 
         $username = strtolower($username);
 
-        $conditions = array('courseid' => $course_id, 'enrol' => 'manual');
+        $conditions = ['courseid' => $course_id, 'enrol' => 'manual'];
         $enrol = $DB->get_record('enrol', $conditions);
 
         if (!$enrol) {
             return;
         }
 
-        $conditions = array('username' => $username);
+        $conditions = ['username' => $username];
         $user = $DB->get_record('user', $conditions);
 
         if (!$user) {
             return;
         }
 
-        $conditions = array('enrolid' => $enrol->id, 'userid' => $user->id);
+        $conditions = ['enrolid' => $enrol->id, 'userid' => $user->id];
         $ue = $DB->get_record('user_enrolments', $conditions);
 
         if (!$ue) {
             // If we cant find a manual enrolemnt, see if we have a self one.
-            $conditions = array('courseid' => $course_id, 'enrol' => 'self');
+            $conditions = ['courseid' => $course_id, 'enrol' => 'self'];
             $enrol = $DB->get_record('enrol', $conditions);
 
             if (!$enrol) {
                 return;
             }
 
-            $conditions = array('enrolid' => $enrol->id, 'userid' => $user->id);
+            $conditions = ['enrolid' => $enrol->id, 'userid' => $user->id];
             $ue = $DB->get_record('user_enrolments', $conditions);
 
             if (!$ue) {
@@ -4084,7 +4031,7 @@ class auth_plugin_joomdle extends auth_plugin_manual {
             }
         }
 
-        $instance = $DB->get_record('enrol', array('id' => $ue->enrolid), '*', MUST_EXIST);
+        $instance = $DB->get_record('enrol', ['id' => $ue->enrolid], '*', MUST_EXIST);
 
         $plugin = enrol_get_plugin($instance->enrol);
 
@@ -4096,7 +4043,7 @@ class auth_plugin_joomdle extends auth_plugin_manual {
 
         $username = strtolower($username);
 
-        $conditions = array('username' => $username);
+        $conditions = ['username' => $username];
         $user = $DB->get_record('user', $conditions);
 
         if (!$user) {
@@ -4104,7 +4051,7 @@ class auth_plugin_joomdle extends auth_plugin_manual {
         }
 
         foreach ($courses as $c) {
-            $conditions = array('id' => $c['id']);
+            $conditions = ['id' => $c['id']];
             $course = $DB->get_record('course', $conditions);
 
             if (!$course) {
@@ -4124,7 +4071,7 @@ class auth_plugin_joomdle extends auth_plugin_manual {
         switch ($modname) {
             case 'resource':
                 // Get display options for resource.
-                $params = array($instance);
+                $params = [$instance];
                 $query = "SELECT display from  {$CFG->prefix}resource where id = ?";
                 $record = $DB->get_record_sql($query, $params);
 
@@ -4132,7 +4079,7 @@ class auth_plugin_joomdle extends auth_plugin_manual {
                 break;
             case 'url':
                 // Get display options for url.
-                $params = array($instance);
+                $params = [$instance];
                 $query = "SELECT display from  {$CFG->prefix}url where id = ?";
                 $record = $DB->get_record_sql($query, $params);
 
@@ -4171,7 +4118,7 @@ class auth_plugin_joomdle extends auth_plugin_manual {
         $user = get_complete_user_data('username', $username);
 
         if (!$user) {
-            return array();
+            return [];
         }
 
         $user_id = $user->id;
@@ -4179,16 +4126,16 @@ class auth_plugin_joomdle extends auth_plugin_manual {
         $cursos = enrol_get_users_courses($user->id, true);
 
         if (!count($cursos)) {
-            return array();
+            return [];
         }
 
-        $ids = array();
+        $ids = [];
         foreach ($cursos as $course) {
             $ids[] = $course->id;
         }
-        list($insql, $params2) = $DB->get_in_or_equal($ids);
+        [$insql, $params2] = $DB->get_in_or_equal($ids);
 
-        $params1 = array($user_id);
+        $params1 = [$user_id];
         $params = array_merge($params1, $params2);
 
         $certs = $DB->get_records_sql("SELECT  c.name, c.id, ci.timecreated as certdate
@@ -4198,7 +4145,7 @@ class auth_plugin_joomdle extends auth_plugin_manual {
                 AND c.course  $insql
                 ORDER BY ci.timecreated DESC", $params);
 
-        $c = array();
+        $c = [];
         foreach ($certs as $cert) {
             $coursemodule = get_coursemodule_from_instance("certificate", $cert->id);
             $certificate['id'] = $coursemodule->id;
@@ -4222,16 +4169,16 @@ class auth_plugin_joomdle extends auth_plugin_manual {
         $cursos = enrol_get_users_courses($user->id, true);
 
         if (!count($cursos)) {
-            return array();
+            return [];
         }
 
-        $ids = array();
+        $ids = [];
         foreach ($cursos as $course) {
             $ids[] = $course->id;
         }
-        list($insql, $params2) = $DB->get_in_or_equal($ids);
+        [$insql, $params2] = $DB->get_in_or_equal($ids);
 
-        $params1 = array($user_id);
+        $params1 = [$user_id];
         $params = array_merge($params1, $params2);
 
         $certs = $DB->get_records_sql("SELECT  c.name, c.id, ci.timecreated as certdate
@@ -4241,7 +4188,7 @@ class auth_plugin_joomdle extends auth_plugin_manual {
                 AND c.course $insql
                 ORDER BY ci.timecreated DESC", $params);
 
-        $c = array();
+        $c = [];
         foreach ($certs as $cert) {
             $coursemodule = get_coursemodule_from_instance("simplecertificate", $cert->id);
             $certificate['id'] = $coursemodule->id;
@@ -4262,7 +4209,7 @@ class auth_plugin_joomdle extends auth_plugin_manual {
         $user = get_complete_user_data('username', $username);
 
         if (!$user) {
-            return array();
+            return [];
         }
 
         $user_id = $user->id;
@@ -4270,16 +4217,16 @@ class auth_plugin_joomdle extends auth_plugin_manual {
         $cursos = enrol_get_users_courses($user->id, true);
 
         if (!count($cursos)) {
-            return array();
+            return [];
         }
 
-        $ids = array();
+        $ids = [];
         foreach ($cursos as $course) {
             $ids[] = $course->id;
         }
-        list($insql, $params2) = $DB->get_in_or_equal($ids);
+        [$insql, $params2] = $DB->get_in_or_equal($ids);
 
-        $params1 = array($user_id);
+        $params1 = [$user_id];
         $params = array_merge($params1, $params2);
 
         $certs = $DB->get_records_sql("SELECT  c.name, c.id, ci.timecreated as certdate
@@ -4289,7 +4236,7 @@ class auth_plugin_joomdle extends auth_plugin_manual {
                 AND c.course $insql
                 ORDER BY ci.timecreated DESC", $params);
 
-        $c = array();
+        $c = [];
         foreach ($certs as $cert) {
             $coursemodule = get_coursemodule_from_instance("customcert", $cert->id);
             $certificate['id'] = $coursemodule->id;
@@ -4310,18 +4257,18 @@ class auth_plugin_joomdle extends auth_plugin_manual {
         $user = get_complete_user_data('username', $username);
 
         if (!$user) {
-            return array();
+            return [];
         }
 
         $user_id = $user->id;
 
-        $params = array($user_id);
+        $params = [$user_id];
         $certs = $DB->get_records_sql("SELECT c.id, ci.timecreated,c.name, ci.code
             FROM {$CFG->prefix}tool_certificate_issues ci
             LEFT JOIN {$CFG->prefix}coursecertificate c ON c.course = ci.courseid
             WHERE ci.userid = ?", $params);
 
-        $c = array();
+        $c = [];
         foreach ($certs as $cert) {
             $coursemodule = get_coursemodule_from_instance("coursecertificate", $cert->id);
             $certificate['id'] = $coursemodule->id;
@@ -4338,7 +4285,7 @@ class auth_plugin_joomdle extends auth_plugin_manual {
     public function get_users_certificates($users, $type = 'normal') {
         global $CFG, $DB;
 
-        $certs = array();
+        $certs = [];
         foreach ($users as $user) {
             $c = $this->my_certificates($user['username'], $type);
             $user['certificates'] = $c;
@@ -4356,14 +4303,14 @@ class auth_plugin_joomdle extends auth_plugin_manual {
             FROM {questionnaire_question} q " .
             "LEFT JOIN {questionnaire_quest_choice} c ON question_id = q.id " .
             'WHERE q.id = ? ORDER BY cid ASC';
-        $params = array($qid);
+        $params = [$qid];
         if (!($records2 = $DB->get_records_sql($sql, $params))) {
-            $records2 = array();
+            $records2 = [];
         }
 
-        $options = array();
+        $options = [];
         foreach ($records2 as $record2) {
-            $option = array();
+            $option = [];
             $option['content'] = $record2->content;
 
             $cid = $record2->cid;
@@ -4371,7 +4318,7 @@ class auth_plugin_joomdle extends auth_plugin_manual {
             $sql = "SELECT count(*) as n
                 FROM {questionnaire_resp_single} rm " .
                 'WHERE question_id = ? AND choice_id = ?';
-            $params = array($qid, $cid);
+            $params = [$qid, $cid];
             if (!($record3 = $DB->get_record_sql($sql, $params))) {
                 $record3 = null;
             }
@@ -4390,14 +4337,14 @@ class auth_plugin_joomdle extends auth_plugin_manual {
         $sql = "SELECT response
             FROM {questionnaire_response_text} r " .
             'WHERE question_id = ? ORDER BY id ASC';
-        $params = array($qid);
+        $params = [$qid];
         if (!($records2 = $DB->get_records_sql($sql, $params))) {
-            $records2 = array();
+            $records2 = [];
         }
 
-        $options = array();
+        $options = [];
         foreach ($records2 as $record2) {
-            $option = array();
+            $option = [];
             $option['content'] = $record2->response;
             $option['n'] = 1;
 
@@ -4410,14 +4357,15 @@ class auth_plugin_joomdle extends auth_plugin_manual {
         global $CFG, $DB;
 
         $username = strtolower($username);
-        $conditions = array('username' => $username);
+        $conditions = ['username' => $username];
         $user = $DB->get_record('user', $conditions);
 
         if (!$user) {
             return 0;
         }
 
-        $conditions = array('userid' => $user->id, 'cohortid' => $cohort_id);;
+        $conditions = ['userid' => $user->id, 'cohortid' => $cohort_id];
+        ;
         $member = $DB->get_record('cohort_members', $conditions);
 
         if ($member) {
@@ -4433,14 +4381,14 @@ class auth_plugin_joomdle extends auth_plugin_manual {
         global $CFG, $DB;
 
         $username = strtolower($username);
-        $conditions = array('username' => $username);
+        $conditions = ['username' => $username];
         $user = $DB->get_record('user', $conditions);
 
         if (!$user) {
             return 0;
         }
 
-        $conditions = array('userid' => $user->id, 'cohortid' => $cohort_id);
+        $conditions = ['userid' => $user->id, 'cohortid' => $cohort_id];
         $member = $DB->get_record('cohort_members', $conditions);
 
         if (!$member) {
@@ -4457,7 +4405,7 @@ class auth_plugin_joomdle extends auth_plugin_manual {
 
         $username = strtolower($username);
 
-        $conditions = array('username' => $username);
+        $conditions = ['username' => $username];
         $user = $DB->get_record('user', $conditions);
 
         if (!$user) {
@@ -4476,7 +4424,7 @@ class auth_plugin_joomdle extends auth_plugin_manual {
 
         $username = strtolower($username);
 
-        $conditions = array('username' => $username);
+        $conditions = ['username' => $username];
         $user = $DB->get_record('user', $conditions);
 
         if (!$user) {
@@ -4498,7 +4446,7 @@ class auth_plugin_joomdle extends auth_plugin_manual {
 
         $cohorts = $DB->get_records_sql($query);
 
-        $rdo = array();
+        $rdo = [];
         foreach ($cohorts as $cohort) {
             $c['id'] = $cohort->id;
             $c['name'] = $cohort->name;
@@ -4512,9 +4460,9 @@ class auth_plugin_joomdle extends auth_plugin_manual {
     public function get_themes() {
         $availablethemes = core_component::get_plugin_list('theme');
 
-        $themes = array();
+        $themes = [];
         foreach ($availablethemes as $name => $path) {
-            $theme = array();
+            $theme = [];
             $theme['name'] = $name;
             $themes[] = $theme;
         }
@@ -4533,7 +4481,7 @@ class auth_plugin_joomdle extends auth_plugin_manual {
 
         $rolenames = role_fix_names($roles, null, ROLENAME_BOTH, true);
 
-        $course_roles = array();
+        $course_roles = [];
         foreach ($roles as $role) {
             // Only return roles assignables in course context.
             $contextlevels = get_role_contextlevels($role->id);
@@ -4541,7 +4489,7 @@ class auth_plugin_joomdle extends auth_plugin_manual {
                 continue;
             }
 
-            $r = array();
+            $r = [];
             $r['id'] = $role->id;
             $r['name'] = $rolenames[$role->id];
 
@@ -4549,13 +4497,12 @@ class auth_plugin_joomdle extends auth_plugin_manual {
         }
 
         foreach ($course_roles as $role) {
-
             $role_users = get_role_users($role['id'], $context);
 
             foreach ($role_users as $user) {
                 if (array_key_exists($user->username, $users)) {
                     if (!property_exists($users[$user->username], 'roles')) {
-                        $users[$user->username]->roles = array();
+                        $users[$user->username]->roles = [];
                     }
                     $users[$user->username]->roles[] = $role;
                 }
@@ -4601,7 +4548,7 @@ class auth_plugin_joomdle extends auth_plugin_manual {
         }
 
         if ($r) {
-            setcookie($r, false,  time() - 42000, '/');
+            setcookie($r, false, time() - 42000, '/');
         }
 
         if ($logout_redirect_to_joomla) {
@@ -4622,7 +4569,7 @@ class auth_plugin_joomdle extends auth_plugin_manual {
             and scormid = ?
             and element = ?";
 
-        $params = array($user->id, $id, $item);
+        $params = [$user->id, $id, $item];
         $record = $DB->get_record_sql($query, $params);
 
         $data = $record->value;
@@ -4631,7 +4578,7 @@ class auth_plugin_joomdle extends auth_plugin_manual {
     }
 
     public function get_scorm_track_data($id, $username) {
-        $data = array();
+        $data = [];
         $data['start_time'] = $this->get_scorm_item_track_data($id, $username, 'x.start.time');
         $data['total_time'] = $this->get_scorm_item_track_data($id, $username, 'cmi.core.total_time');
         $data['lesson_status'] = $this->get_scorm_item_track_data($id, $username, 'cmi.core.lesson_status');
@@ -4667,14 +4614,14 @@ class auth_plugin_joomdle extends auth_plugin_manual {
         $user = get_complete_user_data('username', $username);
 
         if (!$user) {
-            return array();
+            return [];
         }
 
         $badges = badges_get_user_badges($user->id, null, 0, $n);
 
-        $bs = array();
+        $bs = [];
         foreach ($badges as $badge) {
-            $b = array();
+            $b = [];
             $b['name'] = $badge->name;
             $b['hash'] = $badge->uniquehash;
 
@@ -4699,26 +4646,26 @@ class auth_plugin_joomdle extends auth_plugin_manual {
             $user = get_complete_user_data('username', $username);
         }
 
-        $course = $DB->get_record('course', array('id' => $id), '*', MUST_EXIST);
+        $course = $DB->get_record('course', ['id' => $id], '*', MUST_EXIST);
         $context = context_course::instance($id);
 
-        $conditions = array('blockname' => 'completion_progress', 'parentcontextid' => $context->id);
+        $conditions = ['blockname' => 'completion_progress', 'parentcontextid' => $context->id];
         $block = $DB->get_record('block_instances', $conditions);
 
         if (!$block) {
-            return array();
+            return [];
         }
 
         $config = unserialize(base64_decode($block->configdata));
         $blockcontext = CONTEXT_BLOCK::instance($block->id);
 
         $activities = block_completion_progress_get_activities($id, $config);
-        $activities = block_completion_progress_filter_visibility($activities, $user->id, $id, array());
+        $activities = block_completion_progress_filter_visibility($activities, $user->id, $id, []);
         $submissions = block_completion_progress_student_submissions($id, $user->id);
         $completions = block_completion_progress_completions($activities, $user->id, $course, $submissions);
-        $es = array();
+        $es = [];
         foreach ($activities as $event) {
-            $e = array();
+            $e = [];
             $e['name'] = $event['name'];
             $e['type'] = $event['type'];
             $e['id'] = $event['id'];
@@ -4748,15 +4695,15 @@ class auth_plugin_joomdle extends auth_plugin_manual {
             userid = ?
             and timecompleted is not NULL";
 
-        $params = array($user->id);
+        $params = [$user->id];
         $records = $DB->get_records_sql($query, $params);
 
-        $completed_by_id = array();
+        $completed_by_id = [];
         foreach ($records as $record) {
             $completed_by_id[$record->remoteid] = $record->timecompleted;
         }
 
-        $my_completed_courses = array();
+        $my_completed_courses = [];
         foreach ($courses as $course) {
             if (!array_key_exists($course['id'], $completed_by_id)) {
                 continue;
@@ -4781,12 +4728,12 @@ class auth_plugin_joomdle extends auth_plugin_manual {
             cc.course = ?
             and timecompleted is not NULL";
 
-        $params = array($id);
+        $params = [$id];
         $records = $DB->get_records_sql($query, $params);
 
-        $users = array();
+        $users = [];
         foreach ($records as $record) {
-            $r = array();
+            $r = [];
             $r['firstname'] = $record->firstname;
             $r['lastname'] = $record->lastname;
             $r['username'] = $record->username;
@@ -4834,7 +4781,8 @@ class auth_plugin_joomdle extends auth_plugin_manual {
         }
 
         /* Login from password change, don't log in to Joomla */
-        if ((array_key_exists('password', $_POST))  && (array_key_exists('newpassword1', $_POST))
+        if (
+            (array_key_exists('password', $_POST))  && (array_key_exists('newpassword1', $_POST))
             && (array_key_exists('newpassword2', $_POST))
         ) {
             return;

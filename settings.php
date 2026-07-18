@@ -1,5 +1,4 @@
 <?php
-
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -16,8 +15,11 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * @package   auth_joomdle
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * Administration settings for the Joomdle authentication plugin.
+ *
+ * @package    auth_joomdle
+ * @copyright  2009 Antonio Duran Terres
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 defined('MOODLE_INTERNAL') || die;
@@ -25,7 +27,7 @@ defined('MOODLE_INTERNAL') || die;
 if ($ADMIN->fulltree) {
     require_once($CFG->dirroot . '/auth/joomdle/lib.php');
 
-    // We use a custom admin setting since we need to set things up on install
+    // We use a custom admin setting since we need to set things up on install.
     require_once($CFG->dirroot . '/auth/joomdle/classes/admin_setting_configtext_initial_config.php');
     require_once($CFG->dirroot . '/auth/joomdle/classes/admin_setting_configselect_initial_config.php');
 

@@ -23,13 +23,13 @@
 defined('MOODLE_INTERNAL') || die();
 
 function joomdle_get_connection_methods() {
-    $cms = array ( 'fgc' => 'file_get_contents', 'curl' => 'cURL' );
+    $cms = [ 'fgc' => 'file_get_contents', 'curl' => 'cURL' ];
 
     return $cms;
 }
 
 function joomdle_get_ws_protocols() {
-    $cms = array ( 'xmlrpc' => 'XML-RPC', 'rest' => 'REST' );
+    $cms = [ 'xmlrpc' => 'XML-RPC', 'rest' => 'REST' ];
 
     return $cms;
 }
@@ -41,7 +41,7 @@ function joomdle_get_ws_protocols() {
  * @return string SQL expression selected from the allowlist.
  */
 function joomdle_get_course_sort_order($sortby) {
-    $allowedsortfields = array(
+    $allowedsortfields = [
         'date' => 'co.timecreated DESC',
         'sortorder' => 'co.sortorder ASC',
         'fullname' => 'co.fullname ASC',
@@ -54,7 +54,7 @@ function joomdle_get_course_sort_order($sortby) {
         'created DESC' => 'co.timecreated DESC',
         'sortorder ASC' => 'co.sortorder ASC',
         'fullname ASC' => 'co.fullname ASC',
-    );
+    ];
 
     return $allowedsortfields[$sortby] ?? $allowedsortfields['created'];
 }

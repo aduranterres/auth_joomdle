@@ -26,10 +26,12 @@ require_once('../../config.php');
 
 $login = optional_param('login', '', PARAM_TEXT);
 
-$login_token = \core\session\manager::get_login_token();
+$logintoken = \core\session\manager::get_login_token();
 // Normal login to Moodle.
 if ($login == 'moodle') {
-    ?>
+    $actionurl = $CFG->wwwroot . '/login/index.php';
+
+    echo <<<HTML
 <html>
 <head>
 <title>Joomdle - Moodle login</title>
@@ -37,19 +39,19 @@ if ($login == 'moodle') {
 </head>
 <body>
 <h3>Joomdle - Moodle Login</h3>
-<FORM action="<?php echo $CFG->wwwroot; ?>/login/index.php" method="POST">
-<input type="hidden" name="logintoken" value="<?php echo $login_token; ?>">
-Username: <input type=text name="username">
+<form action="$actionurl" method="post">
+<input type="hidden" name="logintoken" value="$logintoken">
+Username: <input type="text" name="username">
 <br>
-Password: <input type=password name="password">
+Password: <input type="password" name="password">
 <br>
-<INPUT type="SUBMIT" value="Login">
-</FORM>
+<input type="submit" value="Login">
+</form>
 </body>
 </html>
-<?php
+HTML;
 } else {
     // Redirect to Joomla.
     $url = get_config('auth_joomdle', 'joomla_url');
-    header ("Location: $url");
+    header("Location: $url");
 }

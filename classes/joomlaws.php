@@ -1,276 +1,164 @@
 <?php
-class joomlaws {
+// This file is part of Moodle - https://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
+class joomlaws {
     public static function getUserInfo_parameters() {
-        return     array(
+        return     [
                     'username',
-                    'app'
-                    );
+                    'app',
+                    ];
     }
 
     public static function test_parameters() {
-        return     array(
-                    );
+        return     [
+                    ];
     }
 
     public static function login_parameters() {
-        return     array(
+        return     [
                     'username',
-                    'password'
-                    );
+                    'password',
+                    ];
     }
 
     public static function getDefaultItemid_parameters() {
-        return     array(
-                    );
+        return     [
+                    ];
     }
 
     public static function confirmJoomlaSession_parameters() {
-        return     array(
+        return     [
                     'username',
-                    'joomdle_auth_token'
-                    );
+                    'joomdle_auth_token',
+                    ];
     }
 
     public static function logout_parameters() {
-        return     array(
+        return     [
                     'username',
-                    'ua_string'
-                    );
+                    'ua_string',
+                    ];
     }
 
     public static function deleteUserKey_parameters() {
-        return     array(
-                    'series'
-                    );
+        return     [
+                    'series',
+                    ];
     }
 
     public static function createUser_parameters() {
-        return     array(
-                    'userinfo'
-                    );
+        return     [
+                    'userinfo',
+                    ];
     }
 
     public static function activateUser_parameters() {
-        return     array(
-                    'username'
-                    );
+        return     [
+                    'username',
+                    ];
     }
 
     public static function updateUser_parameters() {
-        return     array(
-                    'userinfo'
-                    );
+        return     [
+                    'userinfo',
+                    ];
     }
 
     public static function changePassword_parameters() {
-        return     array(
+        return     [
                     'username',
-                    'password'
-                    );
+                    'password',
+                    ];
     }
 
     public static function changeUsername_parameters() {
-        return     array(
+        return     [
                     'old_username',
-                    'new_username'
-                    );
+                    'new_username',
+                    ];
     }
 
     public static function deleteUser_parameters() {
-        return     array(
-                    'username'
-                    );
-    }
-
-    public static function addActivityCourse_parameters() {
-        return     array(
-                    'id',
-                    'name',
-                    'desc',
-                    'cat_id',
-                    'cat_name'
-                    );
-    }
-
-    public static function addActivityCourseEnrolment_parameters() {
-        return     array(
+        return     [
                     'username',
-                    'course_id',
-                    'course_name',
-                    'cat_id',
-                    'cat_name'
-                    );
-    }
-
-    public static function addSocialGroup_parameters() {
-        return     array(
-                    'description',
-                    'course_id'
-                    );
-    }
-
-    public static function updateSocialGroup_parameters() {
-        return     array(
-                    'name',
-                    'desc',
-                    'course_id'
-                    );
-    }
-
-    public static function deleteSocialGroup_parameters() {
-        return     array(
-                    'course_id'
-                    );
-    }
-
-    public static function addSocialGroupMember_parameters() {
-        return     array(
-                    'username',
-                    'permissions',
-                    'course_id'
-                    );
-    }
-
-    public static function removeSocialGroupMember_parameters() {
-        return     array(
-                    'username',
-                    'course_id'
-                    );
-    }
-
-    public static function addPoints_parameters() {
-        return     array(
-                    'action',
-                    'username',
-                    'course_id',
-                    'course_name'
-                    );
-    }
-
-    public static function addActivityQuizAttempt_parameters() {
-        return     array(
-                    'username',
-                    'course_id',
-                    'course_name',
-                    'quiz_name'
-                    );
+                    ];
     }
 
     public static function addMailingSub_parameters() {
-        return     array(
+        return     [
                     'username',
                     'course_id',
-                    'type'
-                    );
+                    'type',
+                    ];
     }
 
     public static function removeMailingSub_parameters() {
-        return     array(
+        return     [
                     'username',
                     'course_id',
-                    'type'
-                    );
+                    'type',
+                    ];
     }
 
     public static function addUserGroups_parameters() {
-        return     array(
+        return     [
                     'course_id',
-                    'course_name'
-                    );
+                    'course_name',
+                    ];
     }
 
     public static function updateUserGroups_parameters() {
-        return     array(
+        return     [
                     'course_id',
-                    'course_name'
-                    );
+                    'course_name',
+                    ];
     }
 
     public static function removeUserGroups_parameters() {
-        return     array(
-                    'course_id'
-                    );
+        return     [
+                    'course_id',
+                    ];
     }
 
     public static function addGroupMember_parameters() {
-        return     array(
+        return     [
                     'course_id',
                     'username',
-                    'type'
-                    );
+                    'type',
+                    ];
     }
 
     public static function removeGroupMember_parameters() {
-        return     array(
+        return     [
                     'course_id',
                     'username',
-                    'type'
-                    );
-    }
-
-    public static function addForum_parameters() {
-        return     array(
-                    'course_id',
-                    'forum_id',
-                    'forum_name'
-                    );
-    }
-
-    public static function updateForum_parameters() {
-        return     array(
-                    'course_id',
-                    'forum_id',
-                    'forum_name'
-                    );
-    }
-
-    public static function removeForum_parameters() {
-        return     array(
-                    'course_id',
-                    'forum_id'
-                    );
-    }
-
-    public static function addForumsModerator_parameters() {
-        return     array(
-                    'course_id',
-                    'username'
-                    );
-    }
-
-    public static function removeForumsModerator_parameters() {
-        return     array(
-                    'course_id',
-                    'username'
-                    );
-    }
-
-    public static function removeCourseForums_parameters() {
-        return     array(
-                    'course_id'
-                    );
+                    'type',
+                    ];
     }
 
     public static function getSellUrl_parameters() {
-        return     array(
-                    'course_id'
-                    );
-    }
-
-    public static function addActivityCourseCompleted_parameters() {
-        return     array(
-                    'username',
+        return     [
                     'course_id',
-                    'course_name'
-                    );
+                    ];
     }
 
     public static function moodleEvent_parameters() {
-        return     array(
+        return     [
                     'event',
-                    'params'
-                    );
+                    'params',
+                    ];
     }
-
 }

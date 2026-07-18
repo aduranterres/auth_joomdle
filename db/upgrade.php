@@ -15,17 +15,21 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
+ * Upgrade steps for the Joomdle authentication plugin.
+ *
  * @package    auth_joomdle
  * @copyright  2009 Antonio Duran Terres
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-
-function xmldb_auth_joomdle_upgrade($oldversion)
-{
-    global $DB, $CFG;
-
-    $dbman = $DB->get_manager();
+/**
+ * Upgrades the Joomdle authentication plugin.
+ *
+ * @param int $oldversion The version being upgraded from.
+ * @return bool True when the upgrade is complete.
+ */
+function xmldb_auth_joomdle_upgrade($oldversion) {
+    global $DB;
 
     if ($oldversion < 2008080273) {
         $sql = "DELETE FROM {events_handlers} WHERE component = 'joomdle'";
@@ -34,37 +38,44 @@ function xmldb_auth_joomdle_upgrade($oldversion)
     }
 
     // Refresh the functions associated with the service.
-    $joomdle_upgrade = new joomdle_upgrade();
-    $joomdle_upgrade->remove_old_functions();
-    $joomdle_upgrade->add_new_functions();
+    $joomdleupgrade = new joomdle_upgrade();
+    $joomdleupgrade->remove_old_functions();
+    $joomdleupgrade->add_new_functions();
 
-    // Change in configuration storage
+    // Change in configuration storage.
     if ($oldversion < 2008080289) {
-        $joomdle_upgrade->change_config_storage();
+        $joomdleupgrade->change_config_storage();
         upgrade_plugin_savepoint(true, 2008080289, 'auth', 'joomdle');
     }
 
     // Add new required capabilities.
     if ($oldversion < 2026071706) {
-        $joomdle_upgrade = new joomdle_upgrade();
-        $joomdle_upgrade->add_new_required_capabilities();
+        $joomdleupgrade = new joomdle_upgrade();
+        $joomdleupgrade->add_new_required_capabilities();
         upgrade_plugin_savepoint(true, 2026071706, 'auth', 'joomdle');
     }
 
     return true;
 }
 
+/**
+ * Performs the Joomdle upgrade operations.
+ */
 class joomdle_upgrade
 {
-    public function add_new_functions()
-    {
+    /**
+     * Adds newly defined functions to the Joomdle web service.
+     *
+     * @return void
+     */
+    public function add_new_functions() {
         global $CFG, $DB;
 
         require_once($CFG->dirroot . '/webservice/lib.php');
         // We get functions array from this file.
         require($CFG->dirroot . '/auth/joomdle/db/services.php');
 
-        $webservicemanager = new webservice;
+        $webservicemanager = new webservice();
 
         // Get Joomdle web service.
         $service = $webservicemanager->get_external_service_by_shortname('joomdle');
@@ -75,10 +86,12 @@ class joomdle_upgrade
 
         foreach ($functions as $name => $function) {
             // Make sure the function is not there yet.
-            if (!$webservicemanager->service_function_exists(
-                $name,
-                $service->id
-            )) {
+            if (
+                !$webservicemanager->service_function_exists(
+                    $name,
+                    $service->id
+                )
+            ) {
                 $webservicemanager->add_external_function_to_service(
                     $name,
                     $service->id
@@ -87,8 +100,12 @@ class joomdle_upgrade
         }
     }
 
-    public function remove_old_functions()
-    {
+    /**
+     * Removes obsolete functions from the Joomdle web service.
+     *
+     * @return void
+     */
+    public function remove_old_functions() {
         global $CFG;
 
         require_once($CFG->dirroot . '/webservice/lib.php');
@@ -96,7 +113,7 @@ class joomdle_upgrade
 
         $definedfunctions = $functions;
 
-        $webservicemanager = new webservice;
+        $webservicemanager = new webservice();
 
         // Get Joomdle web service.
         $service = $webservicemanager->get_external_service_by_shortname('joomdle');
@@ -117,20 +134,28 @@ class joomdle_upgrade
         }
     }
 
-    public function change_config_storage()
-    {
+    /**
+     * Migrates the Joomdle configuration to plugin configuration storage.
+     *
+     * @return void
+     */
+    public function change_config_storage() {
         global $DB;
 
         $sql = "UPDATE {config_plugins} SET plugin = REPLACE(plugin, '/', '_') WHERE plugin='auth/joomdle'";
         $DB->execute($sql);
     }
 
-    public function add_new_required_capabilities()
-    {
+    /**
+     * Adds the capabilities required by the Joomdle web service role.
+     *
+     * @return void
+     */
+    public function add_new_required_capabilities() {
         global $DB;
 
         // Create new role.
-        $role = $DB->get_record('role', array('shortname' => 'joomdlews'));
+        $role = $DB->get_record('role', ['shortname' => 'joomdlews']);
         if (!$role) {
             return;
         }

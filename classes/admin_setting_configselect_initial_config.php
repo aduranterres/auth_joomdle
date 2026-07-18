@@ -33,11 +33,11 @@ class auth_joomdle_admin_setting_configselect_initial_config extends admin_setti
     public function write_setting($data) {
         global $CFG;
 
-        require_once($CFG->dirroot.'/auth/joomdle/db/install.php');
-        require_once($CFG->dirroot.'/lib/upgradelib.php');
+        require_once($CFG->dirroot . '/auth/joomdle/db/install.php');
+        require_once($CFG->dirroot . '/lib/upgradelib.php');
 
-        $joomdle_config = new joomdle_moodle_config ();
-        $joomdle_config->enable_protocol ($data);
+        $joomdle_config = new joomdle_moodle_config();
+        $joomdle_config->enable_protocol($data);
 
         return parent::write_setting($data);
     }

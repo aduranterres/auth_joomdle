@@ -1,4 +1,19 @@
 <?php
+// This file is part of Moodle - https://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+
 /**
  * @package    auth_joomdle
  * @copyright  2009 Antonio Duran Terres
@@ -13,7 +28,7 @@ class joomdle_get_user_id_form extends moodleform {
 
         $mform->addElement('header', 'wstestclienthdr', get_string('testclient', 'webservice'));
 
-        //note: these element are intentionally text aera without validation - we want users to test any rubbish as parameters
+        // note: these element are intentionally text aera without validation - we want users to test any rubbish as parameters
         $mform->addElement('text', 'wsusername', 'wsusername');
         $mform->addElement('text', 'wspassword', 'wspassword');
         $mform->addElement('text', 'username', 'username');
@@ -40,10 +55,9 @@ class joomdle_get_user_id_form extends moodleform {
         unset($data->wsusername);
         unset($data->wspassword);
 
-        $params = array();
+        $params = [];
         $params['username'] = $data->username;
 
         return $params;
     }
 }
-?>
