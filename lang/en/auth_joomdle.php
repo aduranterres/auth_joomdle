@@ -54,4 +54,6 @@ $string['cantopencurlfile'] = 'Cannot open CURL file: {$a}';
 $string['cantwritecurlfile'] = 'Cannot write CURL file: {$a}';
 $string['joomla_sp_description'] = 'Services for Joomla Integration<br>';
 $string['joomla_sp_name'] = 'Joomdle';
+$string['redirectlessssoerror'] = 'Redirect-less SSO login in Joomla failed: {$a}';
+$string['redirectlessssohosterror'] = 'Redirect-less SSO requires Moodle and Joomla to use the same host.';
 $string['pluginname'] = 'Joomdle';

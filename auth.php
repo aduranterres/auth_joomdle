@@ -5171,39 +5171,51 @@ User-Agent: Joomdle",
      *
      * @param string $username Joomla username.
      * @param string $password Joomla password.
-     * @return void
+     * @return bool True when Joomla accepted the login and its cookies were set.
      */
     public function log_into_joomla($username, $password) {
         global $CFG;
 
-        $cookiepath = "/";
-
-        $username = str_replace(' ', '%20', $username);
         $logindata = base64_encode($username . ':' . $password);
         $url = get_config('auth_joomdle', 'joomla_url') .
-            '/index.php?option=com_joomdle&view=joomdle&task=user.login&data=' . $logindata;
+            '/index.php?option=com_joomdle&view=joomdle&task=user.login';
+
+        $moodlehost = parse_url($CFG->wwwroot, PHP_URL_HOST);
+        $joomlahost = parse_url($url, PHP_URL_HOST);
+        if (!$moodlehost || !$joomlahost || strcasecmp($moodlehost, $joomlahost) !== 0) {
+            debugging(get_string('redirectlessssohosterror', 'auth_joomdle'), DEBUG_NORMAL);
+            return false;
+        }
 
         $ch = curl_init();
         // Set url.
         curl_setopt($ch, CURLOPT_URL, $url);
 
-        $file = $CFG->tempdir . "/" . random_string(20);
-
-        // First make sure we can write to file.
-        touch($file);
-        if (!file_exists($file)) {
+        $file = tempnam($CFG->tempdir, 'joomdle_');
+        if ($file === false) {
             die(get_string('cantwritecurlfile', 'auth_joomdle', $file));
         }
 
         // Return the transfer as a string.
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
         curl_setopt($ch, CURLOPT_COOKIEJAR, $file);
-        curl_setopt($ch, CURLOPT_HEADER, 1);
+        curl_setopt($ch, CURLOPT_POST, 1);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query(['data' => $logindata], '', '&'));
 
-        curl_exec($ch);
+        $response = curl_exec($ch);
+        $curlerror = curl_error($ch);
+        $httpcode = curl_getinfo($ch, CURLINFO_RESPONSE_CODE);
         curl_close($ch);
 
         unset($ch);
+
+        // A successful Joomla login redirects to the configured destination.
+        if ($response === false || $httpcode < 300 || $httpcode >= 400) {
+            unlink($file);
+            $detail = $curlerror ?: 'HTTP ' . $httpcode;
+            debugging(get_string('redirectlessssoerror', 'auth_joomdle', $detail), DEBUG_NORMAL);
+            return false;
+        }
 
         $f = fopen($file, 'ro');
 
@@ -5217,12 +5229,21 @@ User-Agent: Joomdle",
                 continue;
             }
             $parts = explode("\t", $line);
-            if (array_key_exists(5, $parts)) {
+            if (array_key_exists(6, $parts)) {
                 $name = $parts[5];
                 $value = trim($parts[6]);
-                setcookie($name, $value, 0, $cookiepath);
+                $httponly = strncmp($parts[0], '#HttpOnly_', 10) === 0;
+                setcookie($name, $value, [
+                    'expires' => (int) $parts[4],
+                    'path' => $parts[2] ?: '/',
+                    'secure' => strtoupper($parts[3]) === 'TRUE',
+                    'httponly' => $httponly,
+                    'samesite' => 'Lax',
+                ]);
             }
         }
+        fclose($f);
         unlink($file);
+        return true;
     }
 }

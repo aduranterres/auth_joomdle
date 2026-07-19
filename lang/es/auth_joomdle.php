@@ -51,4 +51,6 @@ $string['auth_joomla_url_desc'] = 'Dirección URL del servidor Joomla<br>';
 $string['cantwritecurlfile'] = 'No se pudo escribir el fichero CURL: {$a}';
 $string['joomla_sp_description'] = 'Servicios para la integración con Joomla<br>';
 $string['joomla_sp_name'] = 'Joomdle';
+$string['redirectlessssoerror'] = 'El inicio de sesión SSO sin redirección en Joomla ha fallado: {$a}';
+$string['redirectlessssohosterror'] = 'El SSO sin redirección requiere que Moodle y Joomla usen el mismo host.';
 $string['pluginname'] = 'Joomdle';
