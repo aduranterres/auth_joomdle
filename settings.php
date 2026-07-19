@@ -124,16 +124,13 @@ if ($ADMIN->fulltree) {
         0
     ));
 
-
-    if ($CFG->version >= 2017051500) {
-        $authplugin = get_auth_plugin('joomdle');
-        display_auth_lock_options(
-            $settings,
-            $authplugin->authtype,
-            $authplugin->userfields,
-            get_string('auth_fieldlocks_help', 'auth'),
-            false,
-            false
-        );
-    }
+    $authplugin = get_auth_plugin('joomdle');
+    display_auth_lock_options(
+        $settings,
+        $authplugin->authtype,
+        $authplugin->userfields,
+        get_string('auth_fieldlocks_help', 'auth'),
+        false,
+        false
+    );
 }

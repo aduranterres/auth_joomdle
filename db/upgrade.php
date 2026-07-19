@@ -31,12 +31,6 @@
 function xmldb_auth_joomdle_upgrade($oldversion) {
     global $DB;
 
-    if ($oldversion < 2008080273) {
-        $sql = "DELETE FROM {events_handlers} WHERE component = 'joomdle'";
-        $DB->execute($sql);
-        upgrade_plugin_savepoint(true, 2008080273, 'auth', 'joomdle');
-    }
-
     // Refresh the functions associated with the service.
     $joomdleupgrade = new joomdle_upgrade();
     $joomdleupgrade->remove_old_functions();
@@ -48,15 +42,12 @@ function xmldb_auth_joomdle_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2008080289, 'auth', 'joomdle');
     }
 
-    // Add new required capabilities.
-    if ($oldversion < 2026071706) {
+    if ($oldversion < 2026071800) {
+        // Add new required capabilities.
         $joomdleupgrade = new joomdle_upgrade();
         $joomdleupgrade->add_new_required_capabilities();
-        upgrade_plugin_savepoint(true, 2026071706, 'auth', 'joomdle');
-    }
 
-    // REST is now the only protocol used by Joomdle.
-    if ($oldversion < 2026071800) {
+        // REST is now the only protocol used by Joomdle.
         $joomdleupgrade->enable_rest();
         unset_config('ws_protocol', 'auth_joomdle');
         upgrade_plugin_savepoint(true, 2026071800, 'auth', 'joomdle');
@@ -68,8 +59,7 @@ function xmldb_auth_joomdle_upgrade($oldversion) {
 /**
  * Performs the Joomdle upgrade operations.
  */
-class joomdle_upgrade
-{
+class joomdle_upgrade {
     /**
      * Enables Moodle's REST web service protocol.
      *
@@ -93,7 +83,7 @@ class joomdle_upgrade
      * @return void
      */
     public function add_new_functions() {
-        global $CFG, $DB;
+        global $CFG;
 
         require_once($CFG->dirroot . '/webservice/lib.php');
         // We get functions array from this file.
@@ -198,7 +188,6 @@ class joomdle_upgrade
         assign_capability('moodle/category:viewcourselist', CAP_ALLOW, $roleid, $context->id, true);
         assign_capability('moodle/course:viewparticipants', CAP_ALLOW, $roleid, $context->id, true);
         assign_capability('moodle/grade:viewall', CAP_ALLOW, $roleid, $context->id, true);
-        assign_capability('moodle/calendar:manageentries', CAP_ALLOW, $roleid, $context->id, true);
         assign_capability('moodle/site:configview', CAP_ALLOW, $roleid, $context->id, true);
         assign_capability('moodle/category:viewhiddencategories', CAP_ALLOW, $roleid, $context->id, true);
         assign_capability('moodle/role:review', CAP_ALLOW, $roleid, $context->id, true);

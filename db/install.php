@@ -138,7 +138,6 @@ class joomdle_moodle_config {
         assign_capability('moodle/category:viewcourselist', CAP_ALLOW, $roleid, $context->id, true);
         assign_capability('moodle/course:viewparticipants', CAP_ALLOW, $roleid, $context->id, true);
         assign_capability('moodle/grade:viewall', CAP_ALLOW, $roleid, $context->id, true);
-        assign_capability('moodle/calendar:manageentries', CAP_ALLOW, $roleid, $context->id, true);
         assign_capability('moodle/site:configview', CAP_ALLOW, $roleid, $context->id, true);
         assign_capability('moodle/category:viewhiddencategories', CAP_ALLOW, $roleid, $context->id, true);
         assign_capability('moodle/role:review', CAP_ALLOW, $roleid, $context->id, true);
@@ -150,7 +149,6 @@ class joomdle_moodle_config {
         assign_capability('moodle/grade:managegradingforms', CAP_ALLOW, $roleid, $context->id, true);
         assign_capability('moodle/course:managegroups', CAP_ALLOW, $roleid, $context->id, true);
         assign_capability('moodle/badges:viewotherbadges', CAP_ALLOW, $roleid, $context->id, true);
-        assign_capability('moodle/calendar:manageentries', CAP_ALLOW, $roleid, $context->id, true);
         assign_capability('report/completion:view', CAP_ALLOW, $roleid, $context->id, true);
         assign_capability('moodle/user:update', CAP_ALLOW, $roleid, $context->id, true);
 

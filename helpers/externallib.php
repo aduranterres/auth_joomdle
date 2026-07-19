@@ -1552,7 +1552,6 @@ class joomdle_helpers_external extends external_api {
         return new external_single_structure(
             [
                 'joomdle_auth' => new external_value(PARAM_INT, 'joomdle plugin enabled'),
-                'mnet_auth' => new external_value(PARAM_INT, 'mnet plugin enabled'),
                 'joomdle_configured' => new external_value(PARAM_INT, 'joomdle configured'),
                 'test_data' => new external_value(PARAM_RAW, 'test data', VALUE_OPTIONAL),
                 'release' => new external_value(PARAM_TEXT, 'Joomdle release'),

@@ -34,6 +34,7 @@ require_once($CFG->dirroot . '/auth/joomdle/lib.php');
 require_once($CFG->dirroot . '/calendar/lib.php');
 require_once($CFG->dirroot . '/mod/forum/lib.php');
 require_once($CFG->dirroot . '/lib/datalib.php');
+require_once($CFG->libdir . '/filelib.php');
 require_once($CFG->dirroot . '/lib/gdlib.php');
 require_once($CFG->dirroot . '/lib/grade/grade_grade.php');
 require_once($CFG->dirroot . '/lib/grade/grade_item.php');
@@ -273,9 +274,6 @@ class auth_plugin_joomdle extends auth_plugin_manual {
         // Add auth token.
         $joomlarestserverurl .= "&token=" . $joomlaauthtoken;
 
-        // Disable PageSpeed for web service calls.
-        $joomlarestserverurl .= '&PageSpeed=Off';
-
         return $joomlarestserverurl;
     }
 
@@ -284,16 +282,17 @@ class auth_plugin_joomdle extends auth_plugin_manual {
      *
      * @param mixed $method Method.
      * @param mixed $params Params.
+     * @param bool $diagnostic Whether to save the raw response for diagnostics.
      * @return mixed The result of the operation.
      */
-    public function call_method($method, $params = []) {
+    public function call_method($method, $params = [], $diagnostic = false) {
         $connectionmethod = get_config('auth_joomdle', 'connection_method');
 
         if ($connectionmethod == 'fgc') {
-            return $this->call_method_fgc($method, $params);
+            return $this->call_method_fgc($method, $params, $diagnostic);
         }
 
-        return $this->call_method_curl($method, $params);
+        return $this->call_method_curl($method, $params, $diagnostic);
     }
 
     /**
@@ -301,47 +300,25 @@ class auth_plugin_joomdle extends auth_plugin_manual {
      *
      * @param mixed $method Method.
      * @param mixed $params Params.
+     * @param bool $diagnostic Whether to save the raw response for diagnostics.
      * @return mixed The result of the operation.
      */
-    private function call_method_curl($method, $params = []) {
-        global $CFG;
-
+    private function call_method_curl($method, $params = [], $diagnostic = false) {
         $joomlaresturl = $this->get_rest_url();
         $url = $joomlaresturl . '&wsfunction=' . $method;
 
         $request = $this->format_postdata_for_curlcall($params);
 
-        $headers = [];
-        array_push($headers, "Content-Type: application/x-www-form-urlencoded");
-        array_push($headers, "Content-Length: " . strlen($request));
-        array_push($headers, "User-Agent: Joomdle");
-        array_push($headers, "\r
-");
+        $curl = new curl();
+        $curl->setHeader([
+            'Content-Type: application/x-www-form-urlencoded',
+            'Content-Length: ' . strlen($request),
+            'User-Agent: Joomdle',
+        ]);
+        file_put_contents("/var/moodledata/j6/temp/lili", $url);
+        $response = $curl->post($url, $request);
 
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, $url); // URL to post to.
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1); // Return into a variable.
-        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers); // Custom headers, see above.
-        curl_setopt($ch, CURLOPT_POSTFIELDS, $request);
-        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'POST'); // This POST is special, and uses its specified Content-type.
-
-        // Use proxy if one is configured.
-        if (!empty($CFG->proxyhost)) {
-            if (empty($CFG->proxyport)) {
-                curl_setopt($ch, CURLOPT_PROXY, $CFG->proxyhost);
-            } else {
-                curl_setopt($ch, CURLOPT_PROXY, $CFG->proxyhost . ':' . $CFG->proxyport);
-            }
-            curl_setopt($ch, CURLOPT_HTTPPROXYTUNNEL, false);
-        }
-
-        $response = curl_exec($ch); // Run!
-        curl_close($ch);
-
-        $response = trim($response);
-        $data = json_decode($response, true);
-
-        return $data;
+        return $this->process_method_response($response, $diagnostic);
     }
 
     /**
@@ -349,9 +326,10 @@ class auth_plugin_joomdle extends auth_plugin_manual {
      *
      * @param mixed $method Method.
      * @param mixed $params Params.
+     * @param bool $diagnostic Whether to save the raw response for diagnostics.
      * @return mixed The result of the operation.
      */
-    private function call_method_fgc($method, $params = []) {
+    private function call_method_fgc($method, $params = [], $diagnostic = false) {
         $joomlaresturl = $this->get_rest_url();
         $url = $joomlaresturl . '&wsfunction=' . $method;
 
@@ -359,131 +337,31 @@ class auth_plugin_joomdle extends auth_plugin_manual {
 
         $context = stream_context_create(['http' => [
             'method' => "POST",
-            'header' => "Content-Type: application/x-www-form-urlencoded\r
-User-Agent: Joomdle",
+            'header' => "Content-Type: application/x-www-form-urlencoded\r\nUser-Agent: Joomdle",
             'content' => $request,
         ]]);
         $response = file_get_contents($url, false, $context);
 
-        $response = trim($response);
-        $data = json_decode($response, true);
-
-        return $data;
+        return $this->process_method_response($response, $diagnostic);
     }
 
     /**
-     * Call method debug.
+     * Process a method response.
      *
-     * @param mixed $method Method.
-     * @param mixed $params Params.
+     * @param string|false $response Raw response.
+     * @param bool $diagnostic Whether to save the raw response for diagnostics.
      * @return mixed The result of the operation.
      */
-    private function call_method_debug($method, $params = []) {
-        return $this->call_method_debug_rest($method, $params);
-    }
-
-    /**
-     * Call method debug rest.
-     *
-     * @param mixed $method Method.
-     * @param mixed $params Params.
-     * @return mixed The result of the operation.
-     */
-    private function call_method_debug_rest($method, $params = []) {
-        $connectionmethod = get_config('auth_joomdle', 'connection_method');
-
-        if ($connectionmethod == 'fgc') {
-            $response = $this->call_method_debug_rest_fgc($method, $params);
-        } else {
-            $response = $this->call_method_debug_rest_curl($method, $params);
-        }
-
-        return $response;
-    }
-
-    /**
-     * Call method debug rest curl.
-     *
-     * @param mixed $method Method.
-     * @param mixed $params Params.
-     * @return mixed The result of the operation.
-     */
-    private function call_method_debug_rest_curl($method, $params = []) {
+    private function process_method_response($response, $diagnostic = false) {
         global $CFG;
 
-        $joomlaresturl = $this->get_rest_url();
-        $url = $joomlaresturl . '&wsfunction=' . $method;
-
-        $request = $this->format_postdata_for_curlcall($params);
-
-        $headers = [];
-        array_push($headers, "Content-Type: application/x-www-form-urlencoded");
-        array_push($headers, "Content-Length: " . strlen($request));
-        array_push($headers, "User-Agent: Joomdle");
-        array_push($headers, "\r
-");
-
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, $url); // URL to post to.
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1); // Return into a variable.
-        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers); // Custom headers, see above.
-        curl_setopt($ch, CURLOPT_POSTFIELDS, $request);
-        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'POST'); // This POST is special, and uses its specified Content-type.
-
-        // Use proxy if one is configured.
-        if (!empty($CFG->proxyhost)) {
-            if (empty($CFG->proxyport)) {
-                curl_setopt($ch, CURLOPT_PROXY, $CFG->proxyhost);
-            } else {
-                curl_setopt($ch, CURLOPT_PROXY, $CFG->proxyhost . ':' . $CFG->proxyport);
-            }
-            curl_setopt($ch, CURLOPT_HTTPPROXYTUNNEL, false);
+        if ($diagnostic) {
+            $tmpfile = $CFG->dataroot . '/temp/joomdle_system_check.json';
+            file_put_contents($tmpfile, $response);
         }
 
-        $response = curl_exec($ch); // Run!
-        curl_close($ch);
-
-        // Save raw reply to file.
-        $tmpfile = $CFG->dataroot . '/temp/' . 'joomdle_system_check.json';
-        file_put_contents($tmpfile, $response);
-
         $response = trim($response);
-        $data = json_decode($response, true);
-
-        return $data;
-    }
-
-    /**
-     * Call method debug rest fgc.
-     *
-     * @param mixed $method Method.
-     * @param mixed $params Params.
-     * @return mixed The result of the operation.
-     */
-    private function call_method_debug_rest_fgc($method, $params = []) {
-        global $CFG;
-
-        $joomlaresturl = $this->get_rest_url();
-        $url = $joomlaresturl . '&wsfunction=' . $method;
-
-        $request = $this->format_postdata_for_curlcall($params);
-
-        $context = stream_context_create(['http' => [
-            'method' => "POST",
-            'header' => "Content-Type: application/x-www-form-urlencoded\r
-User-Agent: Joomdle",
-            'content' => $request,
-        ]]);
-        $response = file_get_contents($url, false, $context);
-
-        // Save raw reply to file.
-        $tmpfile = $CFG->dataroot . '/temp/' . 'joomdle_system_check.json';
-        file_put_contents($tmpfile, $response);
-
-        $response = trim($response);
-        $data = json_decode($response, true);
-
-        return $data;
+        return json_decode($response, true);
     }
 
     /**
@@ -564,31 +442,8 @@ User-Agent: Joomdle",
      * @return mixed The result of the operation.
      */
     private function get_file_curl($file) {
-        global $CFG;
-
-        $ch = curl_init();
-        // Set url.
-        curl_setopt($ch, CURLOPT_URL, $file);
-
-        // Return the transfer as a string.
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-
-        // Use proxy if one is configured.
-        if (!empty($CFG->proxyhost)) {
-            if (empty($CFG->proxyport)) {
-                curl_setopt($ch, CURLOPT_PROXY, $CFG->proxyhost);
-            } else {
-                curl_setopt($ch, CURLOPT_PROXY, $CFG->proxyhost . ':' . $CFG->proxyport);
-            }
-            curl_setopt($ch, CURLOPT_HTTPPROXYTUNNEL, false);
-        }
-
-        // The output variable contains the response string.
-        $output = curl_exec($ch);
-
-        curl_close($ch);
-
-        return $output;
+        $curl = new curl();
+        return $curl->get($file);
     }
 
     /**
@@ -597,14 +452,13 @@ User-Agent: Joomdle",
      */
     public function system_check() {
         $system['joomdle_auth'] = (int) is_enabled_auth('joomdle');
-        $system['mnet_auth'] = 1; // Left this way so we can have the same system check code for 19 and 20.
 
         $joomlaurl = get_config('auth_joomdle', 'joomla_url');
         if ($joomlaurl == '') {
             $system['joomdle_configured'] = 0;
         } else {
             $system['joomdle_configured'] = 1;
-            $data = $this->call_method_debug("test");
+            $data = $this->call_method("test", [], true);
             $system['test_data'] = $data;
         }
 
@@ -1154,7 +1008,6 @@ User-Agent: Joomdle",
             }
         }
 
-        $i = 0;
         $now = time();
         $options['noclean'] = true;
         $cursos = [];
@@ -2388,7 +2241,7 @@ User-Agent: Joomdle",
      * @return mixed The result of the operation.
      */
     public function get_userinfo($username) {
-        global $CFG, $DB;
+        global $DB;
 
         $username = strtolower($username);
 
@@ -2413,7 +2266,7 @@ User-Agent: Joomdle",
      * @return mixed The result of the operation.
      */
     public function create_joomdle_user_record($username, $password, $auth, &$userinfo) {
-        global $CFG, $DB;
+        global $CFG;
         require_once($CFG->dirroot . '/user/profile/lib.php');
         require_once($CFG->dirroot . '/user/lib.php');
 
@@ -2444,6 +2297,8 @@ User-Agent: Joomdle",
 
         $newuser->auth = $auth;
         $newuser->username = $username;
+        $newuser->confirmed = $newinfo['confirmed'];
+        $newuser->suspended = $newinfo['suspended'];
 
         // Fix for MDL-8480
         // user CFG lang for user if $newuser->lang is empty
@@ -2577,24 +2432,6 @@ User-Agent: Joomdle",
         }
 
         return 1;
-    }
-
-    // Sets user password as it comes from Joomla (hashed).
-    // We need this because user_update_user expects password to be clear.
-    /**
-     * Change user password.
-     *
-     * @param mixed $userid User id.
-     * @param mixed $password Password.
-     * @return mixed The result of the operation.
-     */
-    private function change_user_password($userid, $password) {
-        global $CFG, $DB;
-
-        $data = new stdClass();
-        $data->id = $userid;
-        $data->password = $password;
-        $DB->update_record('user', $data);
     }
 
     /**
@@ -4016,19 +3853,6 @@ User-Agent: Joomdle",
     }
 
     /**
-     * Make html inline.
-     *
-     * @param mixed $html Html.
-     * @return mixed The result of the operation.
-     */
-    private function make_html_inline($html) {
-        $html = preg_replace('~\s*<p>\s*~', '', $html);
-        $html = preg_replace('~\s*</p>\s*~', '<br />', $html);
-        $html = preg_replace('~<br />$~', '', $html);
-        return $html;
-    }
-
-    /**
      * Multiple suspend enrolment.
      *
      * @param mixed $username Username.
@@ -5187,30 +5011,23 @@ User-Agent: Joomdle",
             return false;
         }
 
-        $ch = curl_init();
-        // Set url.
-        curl_setopt($ch, CURLOPT_URL, $url);
-
         $file = tempnam($CFG->tempdir, 'joomdle_');
         if ($file === false) {
             die(get_string('cantwritecurlfile', 'auth_joomdle', $file));
         }
 
-        // Return the transfer as a string.
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-        curl_setopt($ch, CURLOPT_COOKIEJAR, $file);
-        curl_setopt($ch, CURLOPT_POST, 1);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query(['data' => $logindata], '', '&'));
-
-        $response = curl_exec($ch);
-        $curlerror = curl_error($ch);
-        $httpcode = curl_getinfo($ch, CURLINFO_RESPONSE_CODE);
-        curl_close($ch);
-
-        unset($ch);
+        $curl = new curl(['cookie' => $file]);
+        $curl->post(
+            $url,
+            http_build_query(['data' => $logindata], '', '&'),
+            ['CURLOPT_FOLLOWLOCATION' => false]
+        );
+        $curlinfo = $curl->get_info();
+        $curlerror = $curl->error;
+        $httpcode = $curlinfo['http_code'] ?? 0;
 
         // A successful Joomla login redirects to the configured destination.
-        if ($response === false || $httpcode < 300 || $httpcode >= 400) {
+        if ($curl->get_errno() !== CURLE_OK || $httpcode < 300 || $httpcode >= 400) {
             unlink($file);
             $detail = $curlerror ?: 'HTTP ' . $httpcode;
             debugging(get_string('redirectlessssoerror', 'auth_joomdle', $detail), DEBUG_NORMAL);
