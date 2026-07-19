@@ -15,21 +15,20 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
+ * Library functions for the Joomdle authentication plugin.
+ *
  * @package   auth_joomdle
  * @copyright  2009 Antonio Duran Terres
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-defined('MOODLE_INTERNAL') || die();
-
+/**
+ * Returns the available connection methods.
+ *
+ * @return array<string, string> Connection method names indexed by identifier.
+ */
 function joomdle_get_connection_methods() {
     $cms = [ 'fgc' => 'file_get_contents', 'curl' => 'cURL' ];
-
-    return $cms;
-}
-
-function joomdle_get_ws_protocols() {
-    $cms = [ 'xmlrpc' => 'XML-RPC', 'rest' => 'REST' ];
 
     return $cms;
 }

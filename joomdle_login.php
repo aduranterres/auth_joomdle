@@ -22,8 +22,9 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+// phpcs:disable moodle.Files.RequireLogin.Missing
 require_once('../../config.php');
-
+// phpcs:enable moodle.Files.RequireLogin.Missing
 $login = optional_param('login', '', PARAM_TEXT);
 
 $logintoken = \core\session\manager::get_login_token();

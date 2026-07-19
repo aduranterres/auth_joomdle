@@ -47,6 +47,7 @@ class auth_joomdle_admin_setting_configtext_initial_config extends admin_setting
         if (!$this->initial_config_already_done()) {
             $joomdleconfig = new joomdle_moodle_config();
             $joomdleconfig->enable_web_services();
+            $joomdleconfig->enable_rest();
             $joomdleconfig->create_user();
             $joomdleconfig->add_user_capability();
             $joomdleconfig->create_webservice();

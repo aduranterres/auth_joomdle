@@ -22,7 +22,9 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-require_once(dirname(dirname(dirname(__FILE__))) . '/config.php');
+// phpcs:disable moodle.Files.RequireLogin.Missing
+require_once('../../config.php');
+// phpcs:enable moodle.Files.RequireLogin.Missing
 require_once($CFG->dirroot . '/auth/joomdle/auth.php');
 
 // It gives a warning if no context set, I guess it does nor matter which we use.

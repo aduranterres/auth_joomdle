@@ -49,44 +49,6 @@ class joomdle_moodle_config {
     }
 
     /**
-     * Enables the selected web service protocol.
-     *
-     * @param string $protocol The protocol to enable.
-     * @return void
-     */
-    public function enable_protocol($protocol) {
-        if ($protocol == 'xmlrpc') {
-            $this->enable_xmlrpc();
-        } else if ($protocol == 'rest') {
-            $this->enable_rest();
-        }
-    }
-
-    /**
-     * Enables the XML-RPC web service protocol when available.
-     *
-     * @return void
-     */
-    public function enable_xmlrpc() {
-        global $CFG;
-
-        // XML-RPC is not available from Moodle 4.1.
-        if ($CFG->version >= 20221128) {
-            return;
-        }
-
-        $activewebservices = empty($CFG->webserviceprotocols) ? [] : explode(',', $CFG->webserviceprotocols);
-
-        $webservice = 'xmlrpc';
-        if (!in_array($webservice, $activewebservices)) {
-            $activewebservices[] = $webservice;
-            $activewebservices = array_unique($activewebservices);
-
-            set_config('webserviceprotocols', implode(',', $activewebservices));
-        }
-    }
-
-    /**
      * Enables the REST web service protocol.
      *
      * @return void
@@ -159,13 +121,6 @@ class joomdle_moodle_config {
             set_role_contextlevels($roleid, [CONTEXT_SYSTEM]);
         } else {
             $roleid = $role->id;
-        }
-
-        if ($CFG->version < 20221128) {
-            // Enable xmlrpc capability for role.
-            // XML-RPC is not available from Moodle 4.1.
-            $context = context_system::instance();
-            assign_capability('webservice/xmlrpc:use', CAP_ALLOW, $roleid, $context->id, true);
         }
 
         // Enable REST capability for role.

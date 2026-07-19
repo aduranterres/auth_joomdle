@@ -22,9 +22,10 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+defined('MOODLE_INTERNAL') || die();
 
-$plugin->version  = 2026071706;
-$plugin->requires = 2018120300;
+$plugin->version  = 2026071800;
+$plugin->requires = 2024100712;
 $plugin->maturity = MATURITY_STABLE;
 $plugin->release = "3.1.0";
 $plugin->component = 'auth_joomdle';

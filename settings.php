@@ -29,8 +29,6 @@ if ($ADMIN->fulltree) {
 
     // We use a custom admin setting since we need to set things up on install.
     require_once($CFG->dirroot . '/auth/joomdle/classes/admin_setting_configtext_initial_config.php');
-    require_once($CFG->dirroot . '/auth/joomdle/classes/admin_setting_configselect_initial_config.php');
-
     $settings->add(new auth_joomdle_admin_setting_configtext_initial_config(
         'auth_joomdle/joomla_url',
         get_string('auth_joomla_url', 'auth_joomdle'),
@@ -53,14 +51,6 @@ if ($ADMIN->fulltree) {
         get_string('auth_joomla_connection_method_description', 'auth_joomdle'),
         'fgc',
         joomdle_get_connection_methods()
-    ));
-
-    $settings->add(new auth_joomdle_admin_setting_configselect_initial_config(
-        'auth_joomdle/ws_protocol',
-        get_string('auth_joomla_ws_protocol', 'auth_joomdle'),
-        get_string('auth_joomla_ws_protocol_description', 'auth_joomdle'),
-        'rest',
-        joomdle_get_ws_protocols()
     ));
 
     $settings->add(new admin_setting_configcheckbox(

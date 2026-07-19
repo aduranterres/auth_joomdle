@@ -22,7 +22,9 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-require_once(dirname(dirname(dirname(__FILE__))) . '/config.php');
+// phpcs:disable moodle.Files.RequireLogin.Missing
+require('../../config.php');
+// phpcs:enable moodle.Files.RequireLogin.Missing
 require_once($CFG->libdir . '/authlib.php');
 require_once($CFG->dirroot . '/auth/joomdle/auth.php');
 
@@ -116,12 +118,12 @@ $PAGE->set_context(context_system::instance());
 $token         = optional_param('token', '', PARAM_TEXT);
 $username = optional_param('username', '', PARAM_TEXT);
 $username = strtolower($username);
-$create_user = optional_param('create_user', '', PARAM_TEXT);
+$createuser = optional_param('create_user', '', PARAM_TEXT);
 $wantsurl      = optional_param('wantsurl', '', PARAM_RAW_TRIMMED);
 $wantsurl = auth_joomdle_clean_wantsurl($wantsurl);
-$use_wrapper      = optional_param('use_wrapper', '', PARAM_TEXT);
+$usewrapper      = optional_param('use_wrapper', '', PARAM_TEXT);
 $id      = optional_param('id', '', PARAM_INT);
-$course_id      = optional_param('course_id', '', PARAM_INT); // Additional course_id param used for quiz view.
+$courseid      = optional_param('course_id', '', PARAM_INT); // Additional course_id param used for quiz view.
 $mtype      = optional_param('mtype', '', PARAM_TEXT);
 $day      = optional_param('day', '', PARAM_TEXT);
 $mon      = optional_param('mon', '', PARAM_TEXT);
@@ -135,10 +137,10 @@ $redirect      = optional_param('redirect', '', PARAM_TEXT); // Redirect moodle 
 
 $auth = new auth_plugin_joomdle();
 
-$override_itemid = $auth->call_method('getDefaultItemid');
+$overrideitemid = $auth->call_method('getJoomdleDefaultItemid');
 
-if ($override_itemid) {
-    $itemid = $override_itemid;
+if ($overrideitemid) {
+    $itemid = $overrideitemid;
 }
 
 // First check this is a Joomdle user.
@@ -146,18 +148,21 @@ $user = get_complete_user_data('username', $username);
 if (($user->auth == 'joomdle') || (!$user)) {
     if (($username != 'guest') && ((!isloggedin()) || (isguestuser()))) {
         /* Logged user trying to access */
-        $logged = $auth->call_method("confirmJoomlaSession", $username, $token);
+        $logged = $auth->call_method("confirmJoomlaSession", [
+            'username' => $username,
+            'joomdle_auth_token' => $token,
+        ]);
 
         if ($logged === true) {
             // User is logged in Joomla.
             $user = get_complete_user_data('username', $username);
             if (!$user) {
-                if ($create_user) {
+                if ($createuser) {
                     $auth->create_joomdle_user($username);
                 } else {
                     /* If the user does not exists and we don't have to create it, we are done */
-                    $redirect_url = get_config('auth_joomdle', 'joomla_url');
-                    redirect($redirect_url);
+                    $redirecturl = get_config('auth_joomdle', 'joomla_url');
+                    redirect($redirecturl);
                 }
             }
             $user = get_complete_user_data('username', $username);
@@ -178,125 +183,127 @@ if (($user->auth == 'joomdle') || (!$user)) {
 } // auth = joomdle
 
 // Redirect.
-if ($use_wrapper) {
-    $redirect_url = get_config('auth_joomdle', 'joomla_url');
+if ($usewrapper) {
+    $redirecturl = get_config('auth_joomdle', 'joomla_url');
     switch ($mtype) {
         case "event":
-            $redirect_url .= "/index.php?option=com_joomdle&view=wrapper&moodle_page_type=$mtype&id=$id" .
+            $redirecturl .= "/index.php?option=com_joomdle&view=wrapper&moodle_page_type=$mtype&id=$id" .
                 "&time=$time&Itemid=$itemid";
             break;
         case "course":
-            $redirect_url .= "/index.php?option=com_joomdle&view=wrapper&moodle_page_type=$mtype&id=$id&Itemid=$itemid";
+            $redirecturl .= "/index.php?option=com_joomdle&view=wrapper&moodle_page_type=$mtype&id=$id&Itemid=$itemid";
             if ($topic) {
-                $redirect_url .= '&topic=' . $topic;
+                $redirecturl .= '&topic=' . $topic;
             }
             if ($section) {
-                $redirect_url .= '&section=' . $section;
+                $redirecturl .= '&section=' . $section;
             }
             break;
         case "coursecategory":
-            $redirect_url .= "/index.php?option=com_joomdle&view=wrapper&moodle_page_type=$mtype&id=$id&Itemid=$itemid";
+            $redirecturl .= "/index.php?option=com_joomdle&view=wrapper&moodle_page_type=$mtype&id=$id&Itemid=$itemid";
             break;
         case "news":
-            $redirect_url .= "/index.php?option=com_joomdle&view=wrapper&moodle_page_type=$mtype&id=$id&Itemid=$itemid";
+            $redirecturl .= "/index.php?option=com_joomdle&view=wrapper&moodle_page_type=$mtype&id=$id&Itemid=$itemid";
             break;
         case "forum":
-            $redirect_url .= "/index.php?option=com_joomdle&view=wrapper&moodle_page_type=$mtype&id=$id" .
-                "&course_id=$course_id&Itemid=$itemid";
+            $redirecturl .= "/index.php?option=com_joomdle&view=wrapper&moodle_page_type=$mtype&id=$id" .
+                "&course_id=$courseid&Itemid=$itemid";
             break;
         case "user":
-            $redirect_url .= "/index.php?option=com_joomdle&view=wrapper&moodle_page_type=$mtype&id=$id&Itemid=$itemid";
+            $redirecturl .= "/index.php?option=com_joomdle&view=wrapper&moodle_page_type=$mtype&id=$id&Itemid=$itemid";
             break;
         case "edituser":
-            $redirect_url .= "/index.php?option=com_joomdle&view=wrapper&moodle_page_type=$mtype&id=$id&Itemid=$itemid";
+            $redirecturl .= "/index.php?option=com_joomdle&view=wrapper&moodle_page_type=$mtype&id=$id&Itemid=$itemid";
             break;
         case "resource":
         case "quiz":
         case "page":
         case "assignment":
         case "folder":
-            $redirect_url .= "/index.php?option=com_joomdle&view=wrapper&moodle_page_type=$mtype&id=$id&course_id=$course_id&Itemid=$itemid";
+            $redirecturl .= "/index.php?option=com_joomdle&view=wrapper&moodle_page_type=$mtype&id=$id" .
+                "&course_id=$courseid&Itemid=$itemid";
+            break;
         default:
             if ($mtype) {
-                $redirect_url .= "/index.php?option=com_joomdle&view=wrapper&moodle_page_type=$mtype&id=$id" .
-                    "&course_id=$course_id&Itemid=$itemid";
+                $redirecturl .= "/index.php?option=com_joomdle&view=wrapper&moodle_page_type=$mtype&id=$id" .
+                    "&course_id=$courseid&Itemid=$itemid";
             } else {
                 if ($wantsurl) {
-                    $redirect_url = $wantsurl;
+                    $redirecturl = $wantsurl;
                 } else {
-                    $redirect_url = get_config('auth_joomdle', 'joomla_url');
+                    $redirecturl = get_config('auth_joomdle', 'joomla_url');
                 }
             }
     }
     if ($redirect) {
-        $redirect_url .= "&redirect=1";
+        $redirecturl .= "&redirect=1";
     }
 } else {
-    $redirect_url = $CFG->wwwroot;
+    $redirecturl = $CFG->wwwroot;
     switch ($mtype) {
         case "course":
-            $redirect_url .= "/course/view.php?id=$id";
+            $redirecturl .= "/course/view.php?id=$id";
 
             if ($topic) {
-                $redirect_url .= '&topic=' . $topic;
+                $redirecturl .= '&topic=' . $topic;
             }
             if ($section) {
-                $redirect_url .= '#section-' . $section;
+                $redirecturl .= '#section-' . $section;
             }
             break;
         case "coursecategory":
-            $redirect_url .= "/course/index.php?categoryid=" . $id;
+            $redirecturl .= "/course/index.php?categoryid=" . $id;
             break;
         case "news":
-            $redirect_url .= "/mod/forum/discuss.php?d=$id";
+            $redirecturl .= "/mod/forum/discuss.php?d=$id";
             break;
         case "forum":
-            $redirect_url .= "/mod/forum/view.php?id=$id";
+            $redirecturl .= "/mod/forum/view.php?id=$id";
             break;
         case "event":
-            $redirect_url .= "/calendar/view.php?view=day&time=$time";
+            $redirecturl .= "/calendar/view.php?view=day&time=$time";
             break;
         case "user":
-            $redirect_url .= "/user/view.php?id=$id";
+            $redirecturl .= "/user/view.php?id=$id";
             break;
         case "resource":
-            $redirect_url .= "/mod/resource/view.php?id=$id";
+            $redirecturl .= "/mod/resource/view.php?id=$id";
             break;
         case "quiz":
-            $redirect_url .= "/mod/quiz/view.php?id=$id";
+            $redirecturl .= "/mod/quiz/view.php?id=$id";
             break;
         case "page":
-            $redirect_url .= "/mod/page/view.php?id=$id";
+            $redirecturl .= "/mod/page/view.php?id=$id";
             break;
         case "assignment":
-            $redirect_url .= "/mod/assignment/view.php?id=$id";
+            $redirecturl .= "/mod/assignment/view.php?id=$id";
             break;
         case "folder":
-            $redirect_url .= "/mod/folder/view.php?id=$id";
+            $redirecturl .= "/mod/folder/view.php?id=$id";
             break;
         default:
             if ($mtype) {
-                $redirect_url .= "/mod/$mtype/view.php?id=$id";
+                $redirecturl .= "/mod/$mtype/view.php?id=$id";
             } else {
                 if ($wantsurl) {
-                    $redirect_url = $wantsurl;
+                    $redirecturl = $wantsurl;
                 } else {
-                    $redirect_url = get_config('auth_joomdle', 'joomla_url');
+                    $redirecturl = get_config('auth_joomdle', 'joomla_url');
                 }
             }
     }
     if ($redirect) {
-        $redirect_url .= "&redirect=1";
+        $redirecturl .= "&redirect=1";
     }
 }
 
 if ($lang) {
-    $redirect_url .= '&lang=' . $lang;
+    $redirecturl .= '&lang=' . $lang;
 }
 
-// Kludge to deal with Login form with no redirect set
-if (strstr($redirect_url, 'task=user.login')) {
-    $redirect_url = get_config('auth_joomdle', 'joomla_url');
+// Kludge to deal with login form with no redirect set.
+if (strstr($redirecturl, 'task=user.login')) {
+    $redirecturl = get_config('auth_joomdle', 'joomla_url');
 }
 
-redirect($redirect_url);
+redirect($redirecturl);

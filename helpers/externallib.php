@@ -22,10 +22,16 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+defined('MOODLE_INTERNAL') || die();
 
 require_once("$CFG->libdir/externallib.php");
 require_once($CFG->dirroot . '/auth/joomdle/auth.php');
 
+/**
+ * External web service definitions for the Joomdle authentication plugin.
+ *
+ * @package auth_joomdle
+ */
 class joomdle_helpers_external extends external_api {
     /**
      * Defines parameters for the user id web service.
@@ -127,17 +133,18 @@ class joomdle_helpers_external extends external_api {
     /**
      * Executes the list courses web service.
      *
-     * @param mixed $enrollable_only The enrollable_only value.
+     * @param mixed $enrollableonly The enrollable_only value.
      * @param mixed $sortby The sortby value.
      * @param mixed $guest The guest value.
      * @param mixed $username The username value.
-     * @param mixed $include_hidden The include_hidden value.
+     * @param mixed $includehidden The include_hidden value.
      * @return mixed The web service result.
      */
-    public static function list_courses($enrollable_only, $sortby, $guest, $username, $include_hidden = 0) {
+    public static function list_courses($enrollableonly, $sortby, $guest, $username, $includehidden = 0) {
         $params = self::validate_parameters(
             self::list_courses_parameters(),
-            ['enrollable_only' => $enrollable_only, 'sortby' => $sortby, 'guest' => $guest, 'username' => $username, 'include_hidden' => $include_hidden]
+            ['enrollable_only' => $enrollableonly, 'sortby' => $sortby, 'guest' => $guest,
+                'username' => $username, 'include_hidden' => $includehidden]
         );
 
         $context = context_system::instance();
@@ -201,13 +208,13 @@ class joomdle_helpers_external extends external_api {
      * Executes the my courses web service.
      *
      * @param mixed $username The username value.
-     * @param mixed $order_by_cat The order_by_cat value.
+     * @param mixed $orderbycat The order_by_cat value.
      * @return mixed The web service result.
      */
-    public static function my_courses($username, $order_by_cat) {
+    public static function my_courses($username, $orderbycat) {
         $params = self::validate_parameters(
             self::my_courses_parameters(),
-            ['username' => $username, 'order_by_cat' => $order_by_cat]
+            ['username' => $username, 'order_by_cat' => $orderbycat]
         );
 
         $context = context_system::instance();
@@ -215,7 +222,7 @@ class joomdle_helpers_external extends external_api {
         require_capability('moodle/course:view', $context);
 
         $auth = new  auth_plugin_joomdle();
-        $return = $auth->my_courses($username, $order_by_cat);
+        $return = $auth->my_courses($username, $orderbycat);
 
         return $return;
     }
@@ -399,16 +406,16 @@ class joomdle_helpers_external extends external_api {
      * Executes the courses by category web service.
      *
      * @param mixed $category The category value.
-     * @param mixed $enrollable_only The enrollable_only value.
+     * @param mixed $enrollableonly The enrollable_only value.
      * @param mixed $username The username value.
      * @return mixed The web service result.
      */
-    public static function courses_by_category($category, $enrollable_only, $username) {
+    public static function courses_by_category($category, $enrollableonly, $username) {
         global $CFG, $DB;
 
         $params = self::validate_parameters(
             self::courses_by_category_parameters(),
-            ['category' => $category, 'enrollable_only' => $enrollable_only, 'username' => $username]
+            ['category' => $category, 'enrollable_only' => $enrollableonly, 'username' => $username]
         );
 
         $context = context_system::instance();
@@ -416,7 +423,7 @@ class joomdle_helpers_external extends external_api {
         require_capability('moodle/course:view', $context);
 
         $auth = new  auth_plugin_joomdle();
-        $return = $auth->courses_by_category($category, $enrollable_only, $username);
+        $return = $auth->courses_by_category($category, $enrollableonly, $username);
 
         return $return;
     }
@@ -948,18 +955,18 @@ class joomdle_helpers_external extends external_api {
      * @param mixed $limitstart The limitstart value.
      * @param mixed $limit The limit value.
      * @param mixed $order The order value.
-     * @param mixed $order_dir The order_dir value.
+     * @param mixed $orderdir The order_dir value.
      * @param mixed $search The search value.
      * @return mixed The web service result.
      */
-    public static function get_moodle_users($limitstart, $limit, $order, $order_dir, $search) {
+    public static function get_moodle_users($limitstart, $limit, $order, $orderdir, $search) {
         $params = self::validate_parameters(
             self::get_moodle_users_parameters(),
             [
                 'limitstart' => $limitstart,
                 'limit' => $limit,
                 'order' => $order,
-                'order_dir' => $order_dir,
+                'order_dir' => $orderdir,
                 'search' => $search,
             ]
         );
@@ -969,7 +976,7 @@ class joomdle_helpers_external extends external_api {
         require_capability('moodle/user:viewalldetails', $context);
 
         $auth = new  auth_plugin_joomdle();
-        $return = $auth->get_moodle_users($limitstart, $limit, $order, $order_dir, $search);
+        $return = $auth->get_moodle_users($limitstart, $limit, $order, $orderdir, $search);
 
         return $return;
     }
@@ -1507,7 +1514,7 @@ class joomdle_helpers_external extends external_api {
             return false;
         }
 
-        // Only deal with joomdle users
+        // Only deal with joomdle users.
         if ($user->auth != 'joomdle') {
             return false;
         }
@@ -1637,13 +1644,13 @@ class joomdle_helpers_external extends external_api {
     /**
      * Executes the get cat name web service.
      *
-     * @param mixed $cat_id The cat_id value.
+     * @param mixed $catid The cat_id value.
      * @return mixed The web service result.
      */
-    public static function get_cat_name($cat_id) {
+    public static function get_cat_name($catid) {
         global $DB;
 
-        $params = self::validate_parameters(self::get_cat_name_parameters(), ['cat_id' => $cat_id]);
+        $params = self::validate_parameters(self::get_cat_name_parameters(), ['cat_id' => $catid]);
 
         $category = $DB->get_record('course_categories', ['id' => $params['cat_id']], '*', MUST_EXIST);
         $context = context_coursecat::instance($params['cat_id']);
@@ -1715,14 +1722,14 @@ class joomdle_helpers_external extends external_api {
     /**
      * Executes the courses abc web service.
      *
-     * @param mixed $start_chars The start_chars value.
+     * @param mixed $startchars The start_chars value.
      * @param mixed $username The username value.
      * @return mixed The web service result.
      */
-    public static function courses_abc($start_chars, $username) {
+    public static function courses_abc($startchars, $username) {
         $params = self::validate_parameters(
             self::courses_abc_parameters(),
-            ['start_chars' => $start_chars, 'username' => $username]
+            ['start_chars' => $startchars, 'username' => $username]
         );
 
         $context = context_system::instance();
@@ -1768,11 +1775,11 @@ class joomdle_helpers_external extends external_api {
     /**
      * Executes the teachers abc web service.
      *
-     * @param mixed $start_chars The start_chars value.
+     * @param mixed $startchars The start_chars value.
      * @return mixed The web service result.
      */
-    public static function teachers_abc($start_chars) {
-        $params = self::validate_parameters(self::teachers_abc_parameters(), ['start_chars' => $start_chars]);
+    public static function teachers_abc($startchars) {
+        $params = self::validate_parameters(self::teachers_abc_parameters(), ['start_chars' => $startchars]);
 
         $context = context_system::instance();
         self::validate_context($context);
@@ -2285,15 +2292,15 @@ class joomdle_helpers_external extends external_api {
      * Executes the add cohort member web service.
      *
      * @param mixed $username The username value.
-     * @param mixed $cohort_id The cohort_id value.
+     * @param mixed $cohortid The cohort_id value.
      * @return mixed The web service result.
      */
-    public static function add_cohort_member($username, $cohort_id) {
+    public static function add_cohort_member($username, $cohortid) {
         global $DB;
 
         $params = self::validate_parameters(
             self::add_cohort_member_parameters(),
-            ['username' => $username, 'cohort_id' => $cohort_id]
+            ['username' => $username, 'cohort_id' => $cohortid]
         );
 
         $cohort = $DB->get_record('cohort', ['id' => $params['cohort_id']], '*', MUST_EXIST);
@@ -2688,15 +2695,15 @@ class joomdle_helpers_external extends external_api {
      * Executes the remove cohort member web service.
      *
      * @param mixed $username The username value.
-     * @param mixed $cohort_id The cohort_id value.
+     * @param mixed $cohortid The cohort_id value.
      * @return mixed The web service result.
      */
-    public static function remove_cohort_member($username, $cohort_id) {
+    public static function remove_cohort_member($username, $cohortid) {
         global $DB;
 
         $params = self::validate_parameters(
             self::remove_cohort_member_parameters(),
-            ['username' => $username, 'cohort_id' => $cohort_id]
+            ['username' => $username, 'cohort_id' => $cohortid]
         );
 
         $DB->get_record('user', ['username' => strtolower($params['username'])], '*', MUST_EXIST);
@@ -3209,11 +3216,11 @@ class joomdle_helpers_external extends external_api {
      * @param mixed $username The username value.
      * @param mixed $id The id value.
      * @param mixed $roleid The roleid value.
-     * @param mixed $start_date The start_date value.
-     * @param mixed $end_date The end_date value.
+     * @param mixed $startdate The start_date value.
+     * @param mixed $enddate The end_date value.
      * @return mixed The web service result.
      */
-    public static function enrol_user_with_start_and_end_date($username, $id, $roleid, $start_date, $end_date) {
+    public static function enrol_user_with_start_and_end_date($username, $id, $roleid, $startdate, $enddate) {
         global $DB;
 
         $params = self::validate_parameters(
@@ -3222,8 +3229,8 @@ class joomdle_helpers_external extends external_api {
                 'username' => $username,
                 'id' => $id,
                 'roleid' => $roleid,
-                'start_date' => $start_date,
-                'end_date' => $end_date,
+                'start_date' => $startdate,
+                'end_date' => $enddate,
             ]
         );
 
@@ -3362,23 +3369,23 @@ class joomdle_helpers_external extends external_api {
      * Executes the get events web service.
      *
      * @param mixed $username The username value.
-     * @param mixed $start_date The start_date value.
-     * @param mixed $end_date The end_date value.
+     * @param mixed $startdate The start_date value.
+     * @param mixed $enddate The end_date value.
      * @param mixed $type The type value.
-     * @param mixed $course_id The course_id value.
+     * @param mixed $courseid The course_id value.
      * @return mixed The web service result.
      */
-    public static function get_events($username, $start_date, $end_date, $type, $course_id) {
+    public static function get_events($username, $startdate, $enddate, $type, $courseid) {
         global $DB;
 
         $params = self::validate_parameters(
             self::get_events_parameters(),
             [
                 'username' => $username,
-                'start_date' => $start_date,
-                'end_date' => $end_date,
+                'start_date' => $startdate,
+                'end_date' => $enddate,
                 'type' => $type,
-                'course_id' => $course_id,
+                'course_id' => $courseid,
             ]
         );
 
@@ -3501,15 +3508,15 @@ class joomdle_helpers_external extends external_api {
      * Executes the my completed courses web service.
      *
      * @param mixed $username The username value.
-     * @param mixed $order_by_cat The order_by_cat value.
+     * @param mixed $orderbycat The order_by_cat value.
      * @return mixed The web service result.
      */
-    public static function my_completed_courses($username, $order_by_cat) {
+    public static function my_completed_courses($username, $orderbycat) {
         global $DB;
 
         $params = self::validate_parameters(self::my_completed_courses_parameters(), [
             'username' => $username,
-            'order_by_cat' => $order_by_cat,
+            'order_by_cat' => $orderbycat,
         ]);
 
         $DB->get_record('user', ['username' => core_text::strtolower($params['username'])], '*', MUST_EXIST);
@@ -3600,16 +3607,16 @@ class joomdle_helpers_external extends external_api {
     /**
      * Executes the change username web service.
      *
-     * @param mixed $old_username The old_username value.
-     * @param mixed $new_username The new_username value.
+     * @param mixed $oldusername The old_username value.
+     * @param mixed $newusername The new_username value.
      * @return mixed The web service result.
      */
-    public static function change_username($old_username, $new_username) {
+    public static function change_username($oldusername, $newusername) {
         global $DB;
 
         $params = self::validate_parameters(self::change_username_parameters(), [
-            'old_username' => $old_username,
-            'new_username' => $new_username,
+            'old_username' => $oldusername,
+            'new_username' => $newusername,
         ]);
 
         $DB->get_record('user', ['username' => core_text::strtolower($params['old_username'])], '*', MUST_EXIST);
@@ -3746,15 +3753,15 @@ class joomdle_helpers_external extends external_api {
     /**
      * Executes the get course users web service.
      *
-     * @param mixed $course_id The course_id value.
+     * @param mixed $courseid The course_id value.
      * @return mixed The web service result.
      */
-    public static function get_course_users($course_id) {
+    public static function get_course_users($courseid) {
         global $DB;
 
         $params = self::validate_parameters(
             self::get_course_users_parameters(),
-            ['course_id' => $course_id]
+            ['course_id' => $courseid]
         );
 
         $DB->get_record('course', ['id' => $params['course_id']], '*', MUST_EXIST);

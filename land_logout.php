@@ -22,12 +22,14 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-require_once(dirname(dirname(dirname(__FILE__))) . '/config.php');
+// phpcs:disable moodle.Files.RequireLogin.Missing
+require_once('../../config.php');
+// phpcs:enable moodle.Files.RequireLogin.Missing
 require_once($CFG->libdir . '/authlib.php');
 require_once($CFG->dirroot . '/auth/joomdle/auth.php');
 
 // Delete session record and drop $_SESSION content.
 \core\session\manager::terminate_current();
 
-$redirect_url = get_config('auth_joomdle', 'joomla_url');
-redirect($redirect_url);
+$redirecturl = get_config('auth_joomdle', 'joomla_url');
+redirect($redirecturl);

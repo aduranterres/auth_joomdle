@@ -47,7 +47,10 @@ $username = optional_param('username', '', PARAM_TEXT);
 $username = strtolower($username);
 
 $auth = new auth_plugin_joomdle();
-$logged = $auth->call_method("confirmJoomlaSession", $username, $token);
+$logged = $auth->call_method("confirmJoomlaSession", [
+    'username' => $username,
+    'joomdle_auth_token' => $token,
+]);
 
 if (!$logged) {
     return;

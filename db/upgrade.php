@@ -55,6 +55,13 @@ function xmldb_auth_joomdle_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2026071706, 'auth', 'joomdle');
     }
 
+    // REST is now the only protocol used by Joomdle.
+    if ($oldversion < 2026071800) {
+        $joomdleupgrade->enable_rest();
+        unset_config('ws_protocol', 'auth_joomdle');
+        upgrade_plugin_savepoint(true, 2026071800, 'auth', 'joomdle');
+    }
+
     return true;
 }
 
@@ -63,6 +70,23 @@ function xmldb_auth_joomdle_upgrade($oldversion) {
  */
 class joomdle_upgrade
 {
+    /**
+     * Enables Moodle's REST web service protocol.
+     *
+     * XML-RPC is not disabled globally because other components may still use it.
+     *
+     * @return void
+     */
+    public function enable_rest() {
+        global $CFG;
+
+        $activewebservices = empty($CFG->webserviceprotocols) ? [] : explode(',', $CFG->webserviceprotocols);
+        if (!in_array('rest', $activewebservices)) {
+            $activewebservices[] = 'rest';
+            set_config('webserviceprotocols', implode(',', array_unique($activewebservices)));
+        }
+    }
+
     /**
      * Adds newly defined functions to the Joomdle web service.
      *

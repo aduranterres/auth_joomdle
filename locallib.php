@@ -64,8 +64,7 @@ class auth_joomdle_handler {
         $userinfo = [];
         $userinfo['username'] = $user->username;
         // We can't sync password, because we get in hashed, and hash algo is different in Joomla.
-        // $userinfo['password'] = $user->password;
-        // $userinfo['password2'] = $user->password;
+        // Password syncing would set both password fields from the Moodle user password.
         $userinfo['name'] = $user->firstname . " " . $user->lastname;
         $userinfo['email'] = $user->email;
         $userinfo['firstname'] = $user->firstname;
@@ -115,11 +114,11 @@ class auth_joomdle_handler {
             $i++;
         }
 
-        $authjoomdle->call_method("createUser", $userinfo);
+        $authjoomdle->call_method("createUser", ['userinfo' => $userinfo]);
 
         // Forward event to Joomla.
         if ($forwardevents) {
-            $authjoomdle->call_method('moodleEvent', 'UserCreated', $userinfo);
+            $authjoomdle->call_method('moodleEvent', ['event' => 'UserCreated', 'params' => $userinfo]);
         }
 
         return true;
@@ -142,7 +141,7 @@ class auth_joomdle_handler {
 
         // Forward event to Joomla.
         if ($forwardevents) {
-            $authjoomdle->call_method('moodleEvent', 'UserUpdated', $userinfo);
+            $authjoomdle->call_method('moodleEvent', ['event' => 'UserUpdated', 'params' => $userinfo]);
         }
 
         if (!$synctojoomla) {
@@ -207,7 +206,7 @@ class auth_joomdle_handler {
             $i++;
         }
 
-        $authjoomdle->call_method("updateUser", $userinfo);
+        $authjoomdle->call_method("updateUser", ['userinfo' => $userinfo]);
 
         return true;
     }
@@ -234,13 +233,13 @@ class auth_joomdle_handler {
 
         $authjoomdle = new auth_plugin_joomdle();
 
-        $authjoomdle->call_method("deleteUser", $user->username);
+        $authjoomdle->call_method("deleteUser", ['username' => $user->username]);
 
         // Forward event to Joomla.
         if ($forwardevents) {
             $data = [];
             $data['username'] = $user->username;
-            $authjoomdle->call_method('moodleEvent', 'UserDeleted', $data);
+            $authjoomdle->call_method('moodleEvent', ['event' => 'UserDeleted', 'params' => $data]);
         }
 
         return true;
@@ -303,7 +302,10 @@ class auth_joomdle_handler {
         $course->summary = str_replace('pluginfile.php', '/auth/joomdle/pluginfile_joomdle.php', $course->summary);
 
         if ($joomlausergroups) {
-            $authjoomdle->call_method('addUserGroups', (int) $course->id, $course->fullname);
+            $authjoomdle->call_method('addUserGroups', [
+                'course_id' => (int) $course->id,
+                'course_name' => $course->fullname,
+            ]);
         }
 
         // Forward event to Joomla.
@@ -318,7 +320,7 @@ class auth_joomdle_handler {
             $data['idnumber'] = $course->idnumber;
             $data['startdate'] = $course->startdate;
             $data['enddate'] = $course->enddate;
-            $authjoomdle->call_method('moodleEvent', 'CourseCreated', $data);
+            $authjoomdle->call_method('moodleEvent', ['event' => 'CourseCreated', 'params' => $data]);
         }
 
         return true;
@@ -340,14 +342,14 @@ class auth_joomdle_handler {
         $authjoomdle = new auth_plugin_joomdle();
 
         if ($joomlausergroups) {
-            $authjoomdle->call_method("removeUserGroups", (int) $course->id);
+            $authjoomdle->call_method("removeUserGroups", ['course_id' => (int) $course->id]);
         }
 
         // Forward event to Joomla.
         if ($forwardevents) {
             $data = [];
             $data['course_name'] = $course->fullname;
-            $authjoomdle->call_method('moodleEvent', 'CourseDeleted', $data);
+            $authjoomdle->call_method('moodleEvent', ['event' => 'CourseDeleted', 'params' => $data]);
         }
 
         return true;
@@ -371,7 +373,10 @@ class auth_joomdle_handler {
         $authjoomdle = new auth_plugin_joomdle();
 
         if ($joomlausergroups) {
-            $authjoomdle->call_method('updateUserGroups', (int) $course->id, $course->fullname);
+            $authjoomdle->call_method('updateUserGroups', [
+                'course_id' => (int) $course->id,
+                'course_name' => $course->fullname,
+            ]);
         }
 
         // Forward event to Joomla.
@@ -390,7 +395,7 @@ class auth_joomdle_handler {
             $data['idnumber'] = $course->idnumber;
             $data['startdate'] = $course->startdate;
             $data['enddate'] = $course->enddate;
-            $authjoomdle->call_method('moodleEvent', 'CourseUpdated', $data);
+            $authjoomdle->call_method('moodleEvent', ['event' => 'CourseUpdated', 'params' => $data]);
         }
 
         return true;
@@ -435,7 +440,11 @@ class auth_joomdle_handler {
                 }
 
                 if ($type) {
-                    $authjoomdle->call_method('addMailingSub', $user->username, (int) $courseid, $type);
+                    $authjoomdle->call_method('addMailingSub', [
+                        'username' => $user->username,
+                        'course_id' => (int) $courseid,
+                        'type' => $type,
+                    ]);
                 }
             }
 
@@ -448,7 +457,11 @@ class auth_joomdle_handler {
                 }
 
                 if ($type) {
-                    $authjoomdle->call_method('addGroupMember', (int) $courseid, $user->username, $type);
+                    $authjoomdle->call_method('addGroupMember', [
+                        'course_id' => (int) $courseid,
+                        'username' => $user->username,
+                        'type' => $type,
+                    ]);
                 }
             }
 
@@ -459,7 +472,7 @@ class auth_joomdle_handler {
                 $data['username'] = $user->username;
                 $data['course_name'] = $course->fullname;
                 $data['roleid'] = $roleid;
-                $authjoomdle->call_method('moodleEvent', 'RoleAssigned', $data);
+                $authjoomdle->call_method('moodleEvent', ['event' => 'RoleAssigned', 'params' => $data]);
             }
         }
 
@@ -502,7 +515,11 @@ class auth_joomdle_handler {
                     $type = 'course_students';
                 }
 
-                $authjoomdle->call_method('removeMailingSub', $user->username, (int) $courseid, $type);
+                $authjoomdle->call_method('removeMailingSub', [
+                    'username' => $user->username,
+                    'course_id' => (int) $courseid,
+                    'type' => $type,
+                ]);
             }
 
             if ($joomlausergroups) {
@@ -514,7 +531,11 @@ class auth_joomdle_handler {
                 }
 
                 if ($type) {
-                    $authjoomdle->call_method('removeGroupMember', (int) $courseid, $user->username, $type);
+                    $authjoomdle->call_method('removeGroupMember', [
+                        'course_id' => (int) $courseid,
+                        'username' => $user->username,
+                        'type' => $type,
+                    ]);
                 }
             }
 
@@ -524,7 +545,7 @@ class auth_joomdle_handler {
                 $data['course_id'] = $courseid;
                 $data['username'] = $user->username;
                 $data['course_name'] = $course->fullname;
-                $authjoomdle->call_method('moodleEvent', 'RoleUnassigned', $data);
+                $authjoomdle->call_method('moodleEvent', ['event' => 'RoleUnassigned', 'params' => $data]);
             }
         }
 
@@ -555,7 +576,7 @@ class auth_joomdle_handler {
             $data['course_name'] = $course->fullname;
             $data['quiz_name'] = $quiz->name;
             $data['username'] = $user->username;
-            $authjoomdle->call_method('moodleEvent', 'QuizAttemptSubmitted', $data);
+            $authjoomdle->call_method('moodleEvent', ['event' => 'QuizAttemptSubmitted', 'params' => $data]);
         }
 
         return true;
@@ -579,7 +600,7 @@ class auth_joomdle_handler {
             $data['objectid'] = $event->objectid;
             $data['name'] = $event->other['name'];
             $data['module'] = $event->other['modulename'];
-            $authjoomdle->call_method('moodleEvent', 'CourseModuleCreated', $data);
+            $authjoomdle->call_method('moodleEvent', ['event' => 'CourseModuleCreated', 'params' => $data]);
         }
 
         return true;
@@ -602,7 +623,7 @@ class auth_joomdle_handler {
             $data['course_id'] = $event->courseid;
             $data['objectid'] = $event->objectid;
             $data['module'] = $event->other['modulename'];
-            $authjoomdle->call_method('moodleEvent', 'CourseModuleDeleted', $data);
+            $authjoomdle->call_method('moodleEvent', ['event' => 'CourseModuleDeleted', 'params' => $data]);
         }
 
         return true;
@@ -626,7 +647,7 @@ class auth_joomdle_handler {
             $data['objectid'] = $event->objectid;
             $data['name'] = $event->other['name'];
             $data['module'] = $event->other['modulename'];
-            $authjoomdle->call_method('moodleEvent', 'CourseModuleUpdated', $data);
+            $authjoomdle->call_method('moodleEvent', ['event' => 'CourseModuleUpdated', 'params' => $data]);
         }
 
         return true;
@@ -654,7 +675,7 @@ class auth_joomdle_handler {
             $data['course_id'] = $event->courseid;
             $data['course_name'] = $course->fullname;
             $data['username'] = $user->username;
-            $authjoomdle->call_method('moodleEvent', 'CourseCompleted', $data);
+            $authjoomdle->call_method('moodleEvent', ['event' => 'CourseCompleted', 'params' => $data]);
         }
 
         return true;
@@ -680,7 +701,7 @@ class auth_joomdle_handler {
             $data = [];
             $data['username'] = $user->username;
             $data['password'] = $user->password;
-            $authjoomdle->call_method('moodleEvent', 'UserPasswordUpdated', $data);
+            $authjoomdle->call_method('moodleEvent', ['event' => 'UserPasswordUpdated', 'params' => $data]);
         }
     }
 }

@@ -22,7 +22,7 @@
  * @copyright  Carlos Fonseca <carlos.alexandre@outlook.com>, Chardelle Busch, Mark Nelson <mark@moodle.com.au>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-require_once(dirname(dirname(dirname(__FILE__))) . '/config.php');
+require_once('../../config.php');
 require_once("$CFG->dirroot/mod/simplecertificate/lib.php");
 require_once("$CFG->libdir/pdflib.php");
 require_once("$CFG->dirroot/mod/simplecertificate/locallib.php");
@@ -44,7 +44,10 @@ $username = optional_param('username', '', PARAM_TEXT);
 $username = strtolower($username);
 
 $auth = new auth_plugin_joomdle();
-$logged = $auth->call_method("confirmJoomlaSession", $username, $token);
+$logged = $auth->call_method("confirmJoomlaSession", [
+    'username' => $username,
+    'joomdle_auth_token' => $token,
+]);
 
 if (!$logged) {
     return;

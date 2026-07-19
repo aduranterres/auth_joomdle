@@ -26,7 +26,9 @@
 // Disable moodle specific debug messages and any errors in output.
 define('NO_DEBUG_DISPLAY', true);
 
+// phpcs:disable moodle.Files.RequireLogin.Missing
 require_once('../../config.php');
+// phpcs:enable moodle.Files.RequireLogin.Missing
 require_once('../../lib/filelib.php');
 require_once('filelib_joomdle.php');
 

@@ -8,4 +8,4 @@ In Moodle, install the auth_joomdle.zip package, included in Joomdle main packag
 
 # Configuration
 
-Follow documentation at https://www.joomdle.com/wiki/Main_Page to get Joomdle working.
+Follow documentation at https://www.joomdle.com/docs
