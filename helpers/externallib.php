@@ -34,6 +34,35 @@ require_once($CFG->dirroot . '/auth/joomdle/auth.php');
  */
 class joomdle_helpers_external extends external_api {
     /**
+     * Resolves the requested manual enrolment role and verifies it is assignable.
+     *
+     * @param int $courseid Course id.
+     * @param int $roleid Requested role id, or zero to use the manual enrolment default.
+     * @param context_course $context Course context.
+     * @return int The validated role id.
+     */
+    private static function resolve_assignable_enrol_role($courseid, $roleid, context_course $context) {
+        if (!$roleid) {
+            foreach (enrol_get_instances($courseid, true) as $instance) {
+                if ($instance->enrol == 'manual') {
+                    $roleid = $instance->roleid;
+                    break;
+                }
+            }
+        }
+
+        $assignableroles = get_assignable_roles($context);
+        if (!array_key_exists($roleid, $assignableroles)) {
+            $errorparams = new stdClass();
+            $errorparams->roleid = $roleid;
+            $errorparams->courseid = $courseid;
+            throw new moodle_exception('wsusercannotassign', 'enrol_manual', '', $errorparams);
+        }
+
+        return $roleid;
+    }
+
+    /**
      * Defines parameters for the certificate generation web service.
      *
      * @return external_function_parameters The parameter definition.
@@ -139,7 +168,7 @@ class joomdle_helpers_external extends external_api {
                 'sortby' => new external_value(PARAM_TEXT, 'Order field'),
                 'guest' => new external_value(PARAM_INT, 'Return only courses for guests'),
                 'username' => new external_value(PARAM_TEXT, 'username'),
-                'include_hidden' => new external_value(PARAM_INT, 'Include hidden courses', VALUE_OPTIONAL),
+                'include_hidden' => new external_value(PARAM_INT, 'Include hidden courses'),
             ]
         );
     }
@@ -1202,15 +1231,7 @@ class joomdle_helpers_external extends external_api {
         self::validate_context($context);
         require_capability('enrol/manual:enrol', $context);
 
-        $roleid = $params['roleid'];
-        if (!$roleid) {
-            foreach (enrol_get_instances($params['id'], true) as $instance) {
-                if ($instance->enrol == 'manual') {
-                    $roleid = $instance->roleid;
-                    break;
-                }
-            }
-        }
+        $roleid = self::resolve_assignable_enrol_role($params['id'], $params['roleid'], $context);
 
         $user = $DB->get_record('user', ['username' => core_text::strtolower($params['username'])]);
         if (!$user) {
@@ -1277,15 +1298,7 @@ class joomdle_helpers_external extends external_api {
             self::validate_context($context);
             require_capability('enrol/manual:enrol', $context);
 
-            $assignroleid = $params['roleid'];
-            if (!$assignroleid) {
-                foreach (enrol_get_instances($course['id'], true) as $instance) {
-                    if ($instance->enrol == 'manual') {
-                        $assignroleid = $instance->roleid;
-                        break;
-                    }
-                }
-            }
+            self::resolve_assignable_enrol_role($course['id'], $params['roleid'], $context);
         }
 
         $user = $DB->get_record('user', ['username' => core_text::strtolower($params['username'])]);
@@ -1450,11 +1463,25 @@ class joomdle_helpers_external extends external_api {
      * @return mixed The web service result.
      */
     public static function migrate_to_joomdle($username) {
+        global $DB;
+
         $params = self::validate_parameters(self::migrate_to_joomdle_parameters(), ['username' => $username]);
 
         $context = context_system::instance();
         self::validate_context($context);
         require_capability('moodle/user:update', $context);
+
+        $user = $DB->get_record('user', [
+            'username' => core_text::strtolower($params['username']),
+            'deleted' => 0,
+        ]);
+
+        if (!$user) {
+            return false;
+        }
+        if (is_siteadmin($user)) {
+            return false;
+        }
 
         $auth = new  auth_plugin_joomdle();
         $id = $auth->migrate_to_joomdle($params['username']);
@@ -3006,15 +3033,7 @@ class joomdle_helpers_external extends external_api {
             require_capability('enrol/manual:enrol', $context);
             require_capability('moodle/course:managegroups', $context);
 
-            $assignroleid = $params['roleid'];
-            if (!$assignroleid) {
-                foreach (enrol_get_instances($course['id'], true) as $instance) {
-                    if ($instance->enrol == 'manual') {
-                        $assignroleid = $instance->roleid;
-                        break;
-                    }
-                }
-            }
+            self::resolve_assignable_enrol_role($course['id'], $params['roleid'], $context);
         }
 
         $auth = new  auth_plugin_joomdle();
@@ -3291,15 +3310,7 @@ class joomdle_helpers_external extends external_api {
         self::validate_context($context);
         require_capability('enrol/manual:enrol', $context);
 
-        $roleid = $params['roleid'];
-        if (!$roleid) {
-            foreach (enrol_get_instances($params['id'], true) as $instance) {
-                if ($instance->enrol == 'manual') {
-                    $roleid = $instance->roleid;
-                    break;
-                }
-            }
-        }
+        $roleid = self::resolve_assignable_enrol_role($params['id'], $params['roleid'], $context);
 
         $user = $DB->get_record('user', ['username' => core_text::strtolower($params['username'])]);
         if (!$user) {
@@ -3312,7 +3323,7 @@ class joomdle_helpers_external extends external_api {
         $id = $auth->enrol_user(
             $params['username'],
             $params['id'],
-            $params['roleid'],
+            $roleid,
             $params['start_date'],
             $params['end_date']
         );
@@ -3671,10 +3682,17 @@ class joomdle_helpers_external extends external_api {
             'new_username' => $newusername,
         ]);
 
-        $DB->get_record('user', ['username' => core_text::strtolower($params['old_username'])], '*', MUST_EXIST);
+        $user = $DB->get_record('user', ['username' => core_text::strtolower($params['old_username'])], '*', MUST_EXIST);
         $context = context_system::instance();
         self::validate_context($context);
         require_capability('moodle/user:update', $context);
+
+        if (!$user) {
+            return false;
+        }
+        if (is_siteadmin($user)) {
+            return false;
+        }
 
         $auth = new  auth_plugin_joomdle();
         $id = $auth->change_username($params['old_username'], $params['new_username']);
@@ -3755,10 +3773,17 @@ class joomdle_helpers_external extends external_api {
 
         $params = self::validate_parameters(self::enable_user_parameters(), ['username' => $username, 'suspended' => $suspended]);
 
-        $DB->get_record('user', ['username' => core_text::strtolower($params['username'])], '*', MUST_EXIST);
+        $user = $DB->get_record('user', ['username' => core_text::strtolower($params['username'])], '*', MUST_EXIST);
         $context = context_system::instance();
         self::validate_context($context);
         require_capability('moodle/user:update', $context);
+
+        if (!$user) {
+            return false;
+        }
+        if (is_siteadmin($user)) {
+            return false;
+        }
 
         $auth = new  auth_plugin_joomdle();
         $auth->enable_user($params['username'], $params['suspended']);

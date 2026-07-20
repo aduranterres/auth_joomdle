@@ -62,6 +62,12 @@ function xmldb_auth_joomdle_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2026071901, 'auth', 'joomdle');
     }
 
+    if ($oldversion < 2026072000) {
+        // Permit the connector to access hidden courses and assign approved course roles.
+        $joomdleupgrade->add_new_required_capabilities();
+        upgrade_plugin_savepoint(true, 2026072000, 'auth', 'joomdle');
+    }
+
     return true;
 }
 
@@ -194,11 +200,13 @@ class joomdle_upgrade {
         assign_capability('moodle/user:viewdetails', CAP_ALLOW, $roleid, $context->id, true);
         assign_capability('moodle/user:viewalldetails', CAP_ALLOW, $roleid, $context->id, true);
         assign_capability('moodle/course:view', CAP_ALLOW, $roleid, $context->id, true);
+        assign_capability('moodle/course:viewhiddencourses', CAP_ALLOW, $roleid, $context->id, true);
         assign_capability('moodle/category:viewcourselist', CAP_ALLOW, $roleid, $context->id, true);
         assign_capability('moodle/course:viewparticipants', CAP_ALLOW, $roleid, $context->id, true);
         assign_capability('moodle/grade:viewall', CAP_ALLOW, $roleid, $context->id, true);
         assign_capability('moodle/site:configview', CAP_ALLOW, $roleid, $context->id, true);
         assign_capability('moodle/category:viewhiddencategories', CAP_ALLOW, $roleid, $context->id, true);
+        assign_capability('moodle/role:assign', CAP_ALLOW, $roleid, $context->id, true);
         assign_capability('moodle/role:review', CAP_ALLOW, $roleid, $context->id, true);
         assign_capability('moodle/course:enrolreview', CAP_ALLOW, $roleid, $context->id, true);
         assign_capability('enrol/manual:enrol', CAP_ALLOW, $roleid, $context->id, true);
@@ -211,5 +219,15 @@ class joomdle_upgrade {
         assign_capability('moodle/calendar:manageentries', CAP_ALLOW, $roleid, $context->id, true);
         assign_capability('report/completion:view', CAP_ALLOW, $roleid, $context->id, true);
         assign_capability('moodle/user:update', CAP_ALLOW, $roleid, $context->id, true);
+
+        // Restrict the connector to the standard course roles it needs to assign.
+        foreach (['editingteacher', 'teacher', 'student'] as $archetype) {
+            foreach (get_archetype_roles($archetype) as $targetrole) {
+                $conditions = ['roleid' => $roleid, 'allowassign' => $targetrole->id];
+                if (!$DB->record_exists('role_allow_assign', $conditions)) {
+                    core_role_set_assign_allowed($roleid, $targetrole->id);
+                }
+            }
+        }
     }
 }

@@ -51,6 +51,10 @@ require_once($CFG->dirroot . '/grade/report/user/lib.php');
  * Joomdle authentication plugin.
  */
 class auth_plugin_joomdle extends auth_plugin_manual {
+
+    public const ROLE_TEACHER = 3;
+    public const ROLE_STUDENT = 5;
+
     /**
      * Constructor.
      */
@@ -1357,8 +1361,7 @@ class auth_plugin_joomdle extends auth_plugin_manual {
 
         $id = addslashes($id);
         $context = context_course::instance($id);
-        /* 3 indica profesores editores (table mdl_role) */
-        $profs = get_role_users(3, $context);
+        $profs = get_role_users(self::ROLE_TEACHER, $context);
 
         $data = [];
         $i = 0;
@@ -1393,12 +1396,13 @@ class auth_plugin_joomdle extends auth_plugin_manual {
             $likes[] = $like;
             $params[] = $cond;
         }
-        $where          = '(' . implode(' OR ', $likes) . ')';
+        $where = '(' . implode(' OR ', $likes) . ')';
 
+        $teacher_role = self::ROLE_TEACHER;
         $query = "SELECT distinct (u.id), u.username, u.firstname, u.lastname
                  FROM {$CFG->prefix}course as c, {$CFG->prefix}role_assignments AS ra,
                 {$CFG->prefix}user AS u, {$CFG->prefix}context AS ct
-                 WHERE c.id = ct.instanceid AND ra.roleid =3 AND ra.userid = u.id AND ct.id = ra.contextid
+                 WHERE c.id = ct.instanceid AND ra.roleid = $teacher_role AND ra.userid = u.id AND ct.id = ra.contextid
                      AND c.visible=1 and u.suspended=0 AND $where";
 
         $query .= " ORDER BY lastname, firstname";
@@ -1428,11 +1432,12 @@ class auth_plugin_joomdle extends auth_plugin_manual {
 
         $username = strtolower($username);
 
+        $teacher_role = self::ROLE_TEACHER;
         $query = " SELECT distinct c.id as remoteid, c.fullname, ca.name as cat_name, ca.id as cat_id
                     FROM {$CFG->prefix}course as c, {$CFG->prefix}role_assignments AS ra,
                     {$CFG->prefix}user AS u, {$CFG->prefix}context AS ct,  {$CFG->prefix}course_categories ca
-                    WHERE c.id = ct.instanceid AND ra.roleid =3 AND ra.userid = u.id AND
-                    ct.id = ra.contextid AND ca.id = c.category and u.username= ?";
+                    WHERE c.id = ct.instanceid AND ra.roleid = $teacher_role AND ra.userid = u.id AND
+                    ct.id = ra.contextid AND ca.id = c.category and u.username = ?";
 
         $params = [$username];
         $records = $DB->get_records_sql($query, $params);
@@ -1824,7 +1829,7 @@ class auth_plugin_joomdle extends auth_plugin_manual {
         global $DB;
 
         $context = context_course::instance($id);
-        $alumnos = get_role_users(5, $context);
+        $alumnos = get_role_users(self::ROLE_STUDENT, $context);
 
         $conditions = ['courseid' => $id, 'enrol' => 'manual'];
         $enrol = $DB->get_record('enrol', $conditions);
@@ -1922,80 +1927,39 @@ class auth_plugin_joomdle extends auth_plugin_manual {
 
         $gs = [];
         $true = true;
-        if ($CFG->version >= 2018120301) {
-            [$courses, $group, $user] = calendar_set_filters($filtercourse, $true);
-            $courses = [$id => $id];
+        [$courses, $group, $user] = calendar_set_filters($filtercourse, $true);
+        $courses = [$id => $id];
 
-            if ($username != '') {
-                // Show only events for groups where user is a member.
-                $groups = groups_get_all_groups($id);
-                foreach ($groups as $group) {
-                    $found = false;
-                    // Check is user is a member of the group.
-                    $members = $this->get_group_members($group->id);
-                    foreach ($members as $member) {
-                        if ($member['username'] == $username) {
-                            $found = true;
-                            break;
-                        }
-                    }
-                    if ($found) {
-                        $gs[$group->id] = $group->id;
+        if ($username != '') {
+            // Show only events for groups where user is a member.
+            $groups = groups_get_all_groups($id);
+            foreach ($groups as $group) {
+                $found = false;
+                // Check is user is a member of the group.
+                $members = $this->get_group_members($group->id);
+                foreach ($members as $member) {
+                    if ($member['username'] == $username) {
+                        $found = true;
+                        break;
                     }
                 }
-            }
-
-            $daysinfuture = CALENDAR_DEFAULT_UPCOMING_LOOKAHEAD;
-            $maxevents = CALENDAR_DEFAULT_UPCOMING_MAXEVENTS;
-            $display = new \stdClass();
-            $display->range = $daysinfuture; // How many days in the future we 'll look.
-            $display->maxevents = $maxevents;
-            $now = time(); // We 'll need this later.
-            $usermidnighttoday = usergetmidnight($now);
-            $display->tstart = $usermidnighttoday;
-            $display->tend = usergetmidnight($display->tstart + DAYSECS * $display->range + 3 * HOURSECS) - 1;
-
-            $events = calendar_get_legacy_events($display->tstart, $display->tend, [$user->id], $gs, $courses);
-        } else if ($CFG->version >= 2011070100) {
-            [$courses, $group, $userid] = calendar_set_filters($filtercourse, $true);
-            $courses = [$id => $id];
-
-            if ($username != '') {
-                // Show only events for groups where user is a member.
-                $groups = groups_get_all_groups($id);
-                foreach ($groups as $group) {
-                    $found = false;
-                    // Check is user is a member of the group.
-                    $members = $this->get_group_members($group->id);
-                    foreach ($members as $member) {
-                        if ($member['username'] == $username) {
-                            $found = true;
-                            break;
-                        }
-                    }
-                    if ($found) {
-                        $gs[$group->id] = $group->id;
-                    }
+                if ($found) {
+                    $gs[$group->id] = $group->id;
                 }
             }
-
-            $events = calendar_get_upcoming(
-                $courses,
-                $gs,
-                false,
-                CALENDAR_DEFAULT_UPCOMING_LOOKAHEAD,
-                CALENDAR_DEFAULT_UPCOMING_MAXEVENTS
-            );
-        } else {
-            calendar_set_filters($courses, $group, $user, $filtercourse, $groupeventsfrom, true);
-            $events = calendar_get_upcoming(
-                $courses,
-                $group,
-                $user,
-                CALENDAR_UPCOMING_DAYS,
-                CALENDAR_UPCOMING_MAXEVENTS
-            );
         }
+
+        $daysinfuture = CALENDAR_DEFAULT_UPCOMING_LOOKAHEAD;
+        $maxevents = CALENDAR_DEFAULT_UPCOMING_MAXEVENTS;
+        $display = new \stdClass();
+        $display->range = $daysinfuture; // How many days in the future we 'll look.
+        $display->maxevents = $maxevents;
+        $now = time(); // We 'll need this later.
+        $usermidnighttoday = usergetmidnight($now);
+        $display->tstart = $usermidnighttoday;
+        $display->tend = usergetmidnight($display->tstart + DAYSECS * $display->range + 3 * HOURSECS) - 1;
+
+        $events = calendar_get_legacy_events($display->tstart, $display->tend, [$user->id], $gs, $courses);
 
         $data = [];
         foreach ($events as $r) {
@@ -2004,8 +1968,7 @@ class auth_plugin_joomdle extends auth_plugin_manual {
             $e['timestart'] = $r->timestart;
             $e['courseid'] = $r->courseid;
 
-            $data[$i] = $e;
-            $i++;
+            $data[] = $e;
         }
 
         return $data;
@@ -2764,104 +2727,6 @@ class auth_plugin_joomdle extends auth_plugin_manual {
     }
 
     /**
-     * Enrol user change role.
-     *
-     * @param mixed $username Username.
-     * @param mixed $courseid Course id.
-     * @param mixed $roleid Roleid.
-     * @return mixed The result of the operation.
-     */
-    public function enrol_user_change_role($username, $courseid, $roleid = 5) {
-        global $CFG, $DB, $PAGE;
-
-        $username = strtolower($username);
-        /* Create the user before if it is not created yet */
-        $conditions = ['username' => $username];
-        $user = $DB->get_record('user', $conditions);
-        if (!$user) {
-            $this->create_joomdle_user($username);
-        }
-
-        $user = $DB->get_record('user', $conditions);
-        $conditions = ['id' => $courseid];
-        $course = $DB->get_record('course', $conditions);
-
-        if (!$course) {
-            return 0;
-        }
-
-        // First, check if user is already enroled but suspended, so we just need to enable it.
-
-        $conditions = ['courseid' => $courseid, 'enrol' => 'manual'];
-        $enrol = $DB->get_record('enrol', $conditions);
-
-        if (!$enrol) {
-            return 0;
-        }
-
-        $conditions = ['username' => $username];
-        $user = $DB->get_record('user', $conditions);
-
-        if (!$user) {
-            return 0;
-        }
-
-        $conditions = ['enrolid' => $enrol->id, 'userid' => $user->id];
-        $ue = $DB->get_record('user_enrolments', $conditions);
-
-        // Update role info.
-        if ($ue) {
-            $conditions = ['contextid' => $context->id, 'userid' => $user->id];
-            $ra = $DB->get_record('role_assignments', $conditions);
-
-            if (!$ra) {
-                return 1;
-            }
-
-            $ra->roleid = $roleid;
-            $DB->update_record('role_assignments', $ra);
-            return 1;
-        }
-
-        if ($CFG->version >= 2011061700) {
-            $manager = new course_enrolment_manager($PAGE, $course);
-        } else {
-            $manager = new course_enrolment_manager($course);
-        }
-
-        $instances = $manager->get_enrolment_instances();
-        $plugins = $manager->get_enrolment_plugins();
-        $enrolid = 1; // Manual.
-
-        $today = time();
-        $today = make_timestamp(date('Y', $today), date('m', $today), date('d', $today), 0, 0, 0);
-        $timestart = $today;
-        $timeend = 0;
-
-        $found = false;
-        foreach ($instances as $instance) {
-            if ($instance->enrol == 'manual') {
-                $found = true;
-                break;
-            }
-        }
-
-        if (!$found) {
-            return 0;
-        }
-
-        $plugin = $plugins['manual'];
-
-        if ($instance->enrolperiod) {
-            $timeend   = $timestart + $instance->enrolperiod;
-        }
-
-        $plugin->enrol_user($instance, $user->id, $roleid, $timestart, $timeend);
-
-        return 1;
-    }
-
-    /**
      * Get course groups.
      *
      * @param mixed $id Id.
@@ -2946,8 +2811,8 @@ class auth_plugin_joomdle extends auth_plugin_manual {
      * @param mixed $roleid Roleid.
      * @return mixed The result of the operation.
      */
-    public function multiple_enrol($username, $courses, $roleid = 5) {
-        global $CFG, $DB;
+    public function multiple_enrol($username, $courses, $roleid = self::ROLE_STUDENT) {
+        global $DB;
 
         $username = strtolower($username);
 
@@ -2987,7 +2852,7 @@ class auth_plugin_joomdle extends auth_plugin_manual {
      * @param mixed $timeend Timeend.
      * @return mixed The result of the operation.
      */
-    public function enrol_user($username, $courseid, $roleid = 5, $timestart = 0, $timeend = 0) {
+    public function enrol_user($username, $courseid, $roleid = self::ROLE_STUDENT, $timestart = 0, $timeend = 0) {
         global $CFG, $DB, $PAGE, $USER;
 
         $username = strtolower($username);
@@ -3007,15 +2872,10 @@ class auth_plugin_joomdle extends auth_plugin_manual {
         }
 
         // Get enrol start and end dates of manual enrolment plugin.
-        if ($CFG->version >= 2011061700) {
-            $manager = new course_enrolment_manager($PAGE, $course);
-        } else {
-            $manager = new course_enrolment_manager($course);
-        }
+        $manager = new course_enrolment_manager($PAGE, $course);
 
         $instances = $manager->get_enrolment_instances();
         $plugins = $manager->get_enrolment_plugins();
-        $enrolid = 1; // Manual.
 
         if (!$timestart) {
             // Set NOW as enrol start if not one defined.
@@ -3055,7 +2915,6 @@ class auth_plugin_joomdle extends auth_plugin_manual {
         }
 
         // First, check if user is already enroled but suspended, so we just need to enable it.
-
         $conditions = ['courseid' => $courseid, 'enrol' => 'manual'];
         $enrol = $DB->get_record('enrol', $conditions);
 
@@ -3145,19 +3004,11 @@ class auth_plugin_joomdle extends auth_plugin_manual {
     public function get_moodle_users($limitstart, $limit, $order, $orderdir, $search) {
         global $CFG, $DB;
 
-        /* Don't show admins and guests */
         $admins = get_admins();
         foreach ($admins as $admin) {
             $a[] = $admin->id;
         }
         $a[] = 1; // Guest user.
-        $userlist = "'" . implode("','", $a) . "'";
-
-        if ($limit) {
-            $limitc = " LIMIT $limitstart, $limit";
-        } else {
-            $limitc = "";
-        }
 
         $allowedorders = [
             'id' => 'id',
@@ -3192,7 +3043,8 @@ class auth_plugin_joomdle extends auth_plugin_manual {
             $params[] = "%$search%";
             $likee = $DB->sql_like('email', '?', false);
             $params[] = "%$search%";
-            $likel = $DB->sql_like("CONCAT(firstname, ' ', lastname)", '?', false);
+            $fullname = $DB->sql_concat('firstname', "' '", 'lastname');
+            $likel = $DB->sql_like($fullname, '?', false);
             $params[] = "%$search%";
 
             $users = $DB->get_records_sql("SELECT id, username, email,  firstname, lastname ,auth
@@ -3236,7 +3088,6 @@ class auth_plugin_joomdle extends auth_plugin_manual {
         global $CFG, $DB;
 
         $search = trim($search);
-        /* Don't show admins and guets */
         $admins = get_admins();
         foreach ($admins as $admin) {
             $a[] = $admin->id;
@@ -3250,19 +3101,18 @@ class auth_plugin_joomdle extends auth_plugin_manual {
             $params[] = "%$search%";
             $likee = $DB->sql_like('email', '?', false);
             $params[] = "%$search%";
-            $likel = $DB->sql_like("CONCAT(firstname, ' ', lastname)", '?', false);
+            $fullname = $DB->sql_concat('firstname', "' '", 'lastname');
+            $likel = $DB->sql_like($fullname, '?', false);
             $params[] = "%$search%";
 
             $users = $DB->count_records_sql("SELECT count(id) as n
                             FROM {$CFG->prefix}user
                             WHERE deleted = 0
-                            AND id not in ($userlist)
-                           AND(({$likeu}) OR ({$likee}) OR ({$likel}))", $params);
+                           AND (({$likeu}) OR ({$likee}) OR ({$likel}))", $params);
         } else {
             $users = $DB->count_records_sql("SELECT count(id) as n
                     FROM {$CFG->prefix}user
-                    WHERE deleted = 0
-                    AND id not in ($userlist)");
+                    WHERE deleted = 0");
         }
 
         return $users;
@@ -3301,7 +3151,8 @@ class auth_plugin_joomdle extends auth_plugin_manual {
             $params[] = "%$search%";
             $likee = $DB->sql_like('email', '?', false);
             $params[] = "%$search%";
-            $likel = $DB->sql_like("CONCAT(firstname, ' ', lastname)", '?', false);
+            $fullname = $DB->sql_concat('firstname', "' '", 'lastname');
+            $likel = $DB->sql_like($fullname, '?', false);
             $params[] = "%$search%";
 
             $users = $DB->get_records_sql("SELECT id, username, email,  firstname, lastname, auth
