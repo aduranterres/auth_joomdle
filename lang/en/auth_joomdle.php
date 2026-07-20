@@ -51,6 +51,7 @@ $string['auth_joomla_sync_to_joomla_description'] = 'Syncs new users and profile
 $string['auth_joomla_url'] = 'Joomla URL<br>';
 $string['auth_joomla_url_desc'] = 'Joomla server URL<br>';
 $string['cantopencurlfile'] = 'Cannot open CURL file: {$a}';
+$string['cannotgeneratecertificate'] = 'The certificate PDF could not be generated.';
 $string['cantwritecurlfile'] = 'Cannot write CURL file: {$a}';
 $string['joomla_sp_description'] = 'Services for Joomla Integration<br>';
 $string['joomla_sp_name'] = 'Joomdle';

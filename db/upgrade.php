@@ -53,6 +53,15 @@ function xmldb_auth_joomdle_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2026071800, 'auth', 'joomdle');
     }
 
+    if ($oldversion < 2026071900) {
+        // The service functions were refreshed at the start of the upgrade.
+        upgrade_plugin_savepoint(true, 2026071900, 'auth', 'joomdle');
+    }
+
+    if ($oldversion < 2026071901) {
+        upgrade_plugin_savepoint(true, 2026071901, 'auth', 'joomdle');
+    }
+
     return true;
 }
 

@@ -25,6 +25,14 @@
 defined('MOODLE_INTERNAL') || die();
 
 $functions = [
+    'joomdle_get_certificate' => [
+        'classname'   => 'joomdle_helpers_external',
+        'methodname'  => 'get_certificate',
+        'classpath'   => 'auth/joomdle/helpers/externallib.php',
+        'description' => 'Generate a certificate encoded as base64',
+        'type'        => 'write',
+        'capabilities' => 'moodle/grade:viewall',
+    ],
     'joomdle_user_id' => [     // Web service function name.
         'classname'   => 'joomdle_helpers_external', // Class containing the external function.
         'methodname'  => 'user_id', // External function name.

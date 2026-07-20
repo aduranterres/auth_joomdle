@@ -14,18 +14,24 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+namespace auth_joomdle\certificate;
+
+defined('MOODLE_INTERNAL') || die();
+
 /**
- * Joomdle version file
+ * Contract implemented by certificate module adapters.
  *
  * @package    auth_joomdle
  * @copyright  2009 Antonio Duran Terres
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-
-defined('MOODLE_INTERNAL') || die();
-
-$plugin->version  = 2026071901;
-$plugin->requires = 2024100712;
-$plugin->maturity = MATURITY_STABLE;
-$plugin->release = "3.1.0";
-$plugin->component = 'auth_joomdle';
+interface generator_interface {
+    /**
+     * Generates a certificate for a Moodle user.
+     *
+     * @param \stdClass $user Target Moodle user.
+     * @param int $cmid Course module id.
+     * @return array{filename: string, mimetype: string, content: string}
+     */
+    public function generate(\stdClass $user, int $cmid): array;
+}

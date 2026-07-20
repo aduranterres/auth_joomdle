@@ -4307,8 +4307,6 @@ class auth_plugin_joomdle extends auth_plugin_manual {
      * @return mixed The result of the operation.
      */
     public function get_users_certificates($users, $type = 'normal') {
-        global $CFG, $DB;
-
         $certs = [];
         foreach ($users as $user) {
             $c = $this->my_certificates($user['username'], $type);

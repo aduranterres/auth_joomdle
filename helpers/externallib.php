@@ -34,6 +34,59 @@ require_once($CFG->dirroot . '/auth/joomdle/auth.php');
  */
 class joomdle_helpers_external extends external_api {
     /**
+     * Defines parameters for the certificate generation web service.
+     *
+     * @return external_function_parameters The parameter definition.
+     */
+    public static function get_certificate_parameters() {
+        return new external_function_parameters(
+            [
+                'username' => new external_value(PARAM_USERNAME, 'Target Moodle username'),
+                'type' => new external_value(PARAM_ALPHA, 'Certificate type'),
+                'id' => new external_value(PARAM_INT, 'Course module id'),
+            ]
+        );
+    }
+
+    /**
+     * Defines the certificate generation web service response.
+     *
+     * @return external_description The return structure.
+     */
+    public static function get_certificate_returns() {
+        return new external_single_structure(
+            [
+                'filename' => new external_value(PARAM_FILE, 'Certificate filename'),
+                'mimetype' => new external_value(PARAM_TEXT, 'Certificate MIME type'),
+                'encoding' => new external_value(PARAM_ALPHANUM, 'Content encoding'),
+                'content' => new external_value(PARAM_RAW, 'Encoded certificate content'),
+            ]
+        );
+    }
+
+    /**
+     * Generates a certificate for a Moodle user.
+     *
+     * @param string $username Target Moodle username.
+     * @param string $type Certificate type.
+     * @param int $id Course module id.
+     * @return array The encoded certificate and its metadata.
+     */
+    public static function get_certificate($username, $type, $id) {
+        $params = self::validate_parameters(
+            self::get_certificate_parameters(),
+            ['username' => $username, 'type' => $type, 'id' => $id]
+        );
+
+        $context = context_system::instance();
+        self::validate_context($context);
+        require_capability('moodle/grade:viewall', $context);
+
+        $manager = new \auth_joomdle\certificate\manager();
+        return $manager->generate($params['username'], $params['type'], $params['id']);
+    }
+
+    /**
      * Defines parameters for the user id web service.
      *
      * @return external_function_parameters The parameter definition.
