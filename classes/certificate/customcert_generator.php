@@ -16,8 +16,6 @@
 
 namespace auth_joomdle\certificate;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Generates certificates using the custom certificate activity module.
  *
@@ -72,10 +70,12 @@ final class customcert_generator implements generator_interface {
             throw new \moodle_exception('requiredtimenotmet', 'customcert', '', $a);
         }
 
-        if (!$DB->record_exists('customcert_issues', [
+        if (
+            !$DB->record_exists('customcert_issues', [
             'userid' => $user->id,
             'customcertid' => $customcert->id,
-        ])) {
+            ])
+        ) {
             \mod_customcert\certificate::issue_certificate($customcert->id, $user->id);
         }
 

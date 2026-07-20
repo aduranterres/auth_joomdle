@@ -111,4 +111,9 @@ $observers = [
         'callback' => 'auth_joomdle_handler::course_completed',
         'includefile' => '/auth/joomdle/locallib.php',
     ],
+    [
+        'eventname' => '\core\event\user_password_updated',
+        'callback' => 'auth_joomdle_handler::user_password_updated',
+        'includefile' => '/auth/joomdle/locallib.php',
+    ],
 ];

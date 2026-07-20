@@ -16,8 +16,6 @@
 
 namespace auth_joomdle\certificate;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Contract implemented by certificate module adapters.
  *

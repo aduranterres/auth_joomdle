@@ -367,7 +367,7 @@ $functions = [
         'methodname'  => 'multiple_remove_cohort_member',
         'classpath'   => 'auth/joomdle/helpers/externallib.php',
         'description' => 'Remove user from cohorts',
-        'type'        => '  ',
+        'type'        => 'write',
     ],
     'joomdle_get_courses_and_groups' => [
         'classname'   => 'joomdle_helpers_external',

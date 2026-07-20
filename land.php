@@ -145,7 +145,7 @@ if ($overrideitemid) {
 
 // First check this is a Joomdle user.
 $user = get_complete_user_data('username', $username);
-if (($user->auth == 'joomdle') || (!$user)) {
+if ((!$user) || ($user->auth == 'joomdle')) {
     if (($username != 'guest') && ((!isloggedin()) || (isguestuser()))) {
         /* Logged user trying to access */
         $logged = $auth->call_method("confirmJoomlaSession", [

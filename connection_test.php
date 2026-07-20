@@ -22,4 +22,6 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+// Standalone endpoint intentionally executed without loading Moodle.
+// phpcs:ignore moodle.Files.MoodleInternal.MoodleInternalGlobalState
 echo "OK";

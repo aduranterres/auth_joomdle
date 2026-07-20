@@ -139,15 +139,6 @@ class auth_joomdle_handler {
 
         $authjoomdle = new auth_plugin_joomdle();
 
-        // Forward event to Joomla.
-        if ($forwardevents) {
-            $authjoomdle->call_method('moodleEvent', ['event' => 'UserUpdated', 'params' => $userinfo]);
-        }
-
-        if (!$synctojoomla) {
-            return true;
-        }
-
         $user = $event->get_record_snapshot('user', $event->objectid);
 
         if ($user->auth != 'joomdle') {
@@ -178,6 +169,15 @@ class auth_joomdle_handler {
         $userinfo['middlename'] = $user->middlename;
         $userinfo['alternatename'] = $user->alternatename;
         $userinfo['id'] = $user->id;
+
+        // Forward event to Joomla.
+        if ($forwardevents) {
+            $authjoomdle->call_method('moodleEvent', ['event' => 'UserUpdated', 'params' => $userinfo]);
+        }
+
+        if (!$synctojoomla) {
+            return true;
+        }
 
         $id = $user->id;
         $usercontext = context_user::instance($id);
@@ -681,11 +681,11 @@ class auth_joomdle_handler {
         return true;
     }
 
-    // Note. This does not sync password to Joomla anymore, because hash algo is now different in Joomla and Moodle.
-    // We also don't need it: work is done by user_update_password in auth.php for password changes / admin user edits.
-    // We have not found a way to make it work for users created in Moodle directly.
     /**
      * Handles user password update events.
+     * Note. This does not sync password to Joomla anymore, because hash algo is now different in Joomla and Moodle.
+     * We also don't need it: work is done by user_update_password in auth.php for password changes / admin user edits.
+     * We have not found a way to make it work for users created in Moodle directly.
      *
      * @param \core\event\user_password_updated $event The password update event.
      * @return void
@@ -700,7 +700,6 @@ class auth_joomdle_handler {
         if ($forwardevents) {
             $data = [];
             $data['username'] = $user->username;
-            $data['password'] = $user->password;
             $authjoomdle->call_method('moodleEvent', ['event' => 'UserPasswordUpdated', 'params' => $data]);
         }
     }

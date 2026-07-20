@@ -16,8 +16,6 @@
 
 namespace auth_joomdle\certificate;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Selects the certificate adapter and prepares its service response.
  *

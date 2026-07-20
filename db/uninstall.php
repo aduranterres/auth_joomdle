@@ -83,12 +83,16 @@ class joomdle_moodle_deconfig {
         $webservicemanager = new webservice();
         $servicedata = $webservicemanager->get_external_service_by_shortname('joomdle');
 
+        if (!$servicedata) {
+            return;
+        }
+
         $webservicemanager->delete_service($servicedata->id);
         $params = [
             'objectid' => $servicedata->id,
         ];
         $event = \core\event\webservice_service_deleted::create($params);
-        $event->add_record_snapshot('external_services', $service);
+        $event->add_record_snapshot('external_services', $servicedata);
         $event->trigger();
     }
 }

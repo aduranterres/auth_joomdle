@@ -16,8 +16,6 @@
 
 namespace auth_joomdle\certificate;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Generates certificates using the course certificate activity module.
  *

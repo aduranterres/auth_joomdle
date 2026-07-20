@@ -315,7 +315,6 @@ class auth_plugin_joomdle extends auth_plugin_manual {
             'Content-Length: ' . strlen($request),
             'User-Agent: Joomdle',
         ]);
-        file_put_contents("/var/moodledata/j6/temp/lili", $url);
         $response = $curl->post($url, $request);
 
         return $this->process_method_response($response, $diagnostic);
@@ -686,7 +685,7 @@ class auth_plugin_joomdle extends auth_plugin_manual {
             }
 
             // Check if only guest courses are wanted.
-            if (($guest) && (!$courseinfo['guest'])) {
+            if (($guest) && (!$c['guest'])) {
                 continue;
             }
 
@@ -1455,77 +1454,12 @@ class auth_plugin_joomdle extends auth_plugin_manual {
     }
 
     /**
-     * Returns average grade for a task
-     *
-     * @param int $id Course identifier
-     */
-    public function get_average_grade($itemid) {
-        global $CFG, $DB;
-
-        $id = addslashes($itemid);
-        $avg = 0;
-        $sql = "SELECT g.itemid, gi.itemname as iname,SUM(g.finalgrade) AS sum
-                  FROM {$CFG->prefix}grade_items gi
-                   JOIN {$CFG->prefix}grade_grades g      ON g.itemid = gi.id
-                 WHERE gi.id = ?
-                   AND g.finalgrade IS NOT NULL
-              GROUP BY g.itemid";
-        $sumarray = [];
-        $params = [$itemid];
-        if ($sums = $DB->get_record_sql($sql, $params)) {
-            $sql2 = " select count(*) from {$CFG->prefix}grade_grades where itemid=?;";
-            $n = $DB->count_records_sql($sql2, $params);
-            $avg = $sums->sum / $n;
-        }
-
-        return $avg;
-    }
-
-    /**
-     * Returns stats about student grades
-     *
-     * XXX creo que no la usamos
-     * @param int $id Course identifier
-     */
-    public function get_assignments_grades($id) {
-        global $CFG, $DB;
-
-        /* Obtenemos todas las tareas del curso */
-        $query = "select id,name from  {$CFG->prefix}assignment where course=?;";
-        /* Para cada una, obtenemos la nota media */
-        $params = [$id];
-        $tareas = $DB->get_records_sql($query, $params);
-
-        $i = 0;
-        foreach ($tareas as $tarea) {
-            $assid = $tarea->id;
-            $query = "select itemid,avg(finalgrade) as media
-                    from  {$CFG->prefix}grade_grades
-                    where itemid= ? and
-                    finalgrade is not NULL
-                    GROUP BY itemid;
-                    ";
-            $params = [$assid];
-            $n = $DB->get_records_sql($query, $params);
-            $rdo[$i]['tarea'] = $tarea->name;
-            foreach ($n as $nn) {
-                $rdo[$i]['media'] = $nn;
-            }
-            $i++;
-        }
-
-        return $rdo;
-    }
-
-    /**
      * Get my grades.
      *
      * @param mixed $username Username.
      * @return mixed The result of the operation.
      */
     public function get_my_grades($username) {
-        global $CFG, $DB;
-
         $username = strtolower($username);
 
         $user = get_complete_user_data('username', $username);
@@ -1887,7 +1821,7 @@ class auth_plugin_joomdle extends auth_plugin_manual {
      * @return mixed The result of the operation.
      */
     public function get_course_students($id, $search = '', $active = 0) {
-        global $CFG, $DB;
+        global $DB;
 
         $context = context_course::instance($id);
         $alumnos = get_role_users(5, $context);
@@ -2023,7 +1957,7 @@ class auth_plugin_joomdle extends auth_plugin_manual {
 
             $events = calendar_get_legacy_events($display->tstart, $display->tend, [$user->id], $gs, $courses);
         } else if ($CFG->version >= 2011070100) {
-            [$courses, $group, $user] = calendar_set_filters($filtercourse, $true);
+            [$courses, $group, $userid] = calendar_set_filters($filtercourse, $true);
             $courses = [$id => $id];
 
             if ($username != '') {
@@ -2759,9 +2693,8 @@ class auth_plugin_joomdle extends auth_plugin_manual {
                 $order = 'cs.summary DESC';
         }
 
-        /* REMEMBER: For get_records_sql First field in query must be UNIQUE!!!!! */
         $query = "SELECT cs.id, cs.name as sec_name,
-            co.id          AS remoteid,
+            co.id AS remoteid,
             co.fullname,
             cs.course,
             cs.section,
@@ -2789,7 +2722,7 @@ class auth_plugin_joomdle extends auth_plugin_manual {
             $c['summary'] = format_text($c['summary'], FORMAT_MOODLE, $options);
             $c['cat_name'] = format_string($c['cat_name']);
             if ($c['sec_name']) {
-                $c['sec_name'] = format_string($c['name']);
+                $c['sec_name'] = format_string($c['sec_name']);
             } else {
                 $c['sec_name'] = get_string('topic') . ' ' . $c['section'];
             }
@@ -3782,77 +3715,6 @@ class auth_plugin_joomdle extends auth_plugin_manual {
     }
 
     /**
-     * Quiz get question.
-     *
-     * @param mixed $id Id.
-     * @return mixed The result of the operation.
-     */
-    public function quiz_get_question($id) {
-        global $CFG, $DB;
-
-        $query = "SELECT id,questiontext, qtype
-                FROM {$CFG->prefix}question
-                WHERE id = ?";
-        $params = [$id];
-        $record = $DB->get_record_sql($query, $params);
-
-        $r = get_object_vars($record);
-
-        return $r;
-    }
-
-    /**
-     * Rewrites question file URLs for the requested context.
-     *
-     * @param string $text Text containing the URLs.
-     * @param string $file File-serving script path.
-     * @param int $contextid Context identifier.
-     * @param string $component Component name.
-     * @param string $filearea File area name.
-     * @param array $ids Additional path identifiers.
-     * @param int|null $itemid Item identifier.
-     * @param array|null $options URL rewriting options.
-     * @return string Text with rewritten URLs.
-     */
-    public function question_rewrite_question_urls(
-        $text,
-        $file,
-        $contextid,
-        $component,
-        $filearea,
-        $ids,
-        $itemid,
-        $options = null
-    ) {
-        global $CFG;
-
-        $options = (array)$options;
-        if (!isset($options['forcehttps'])) {
-            $options['forcehttps'] = false;
-        }
-
-        if (!$CFG->slasharguments) {
-            $file = $file . '?file=';
-        }
-
-        $baseurl = "$CFG->wwwroot/$file/$contextid/$component/$filearea/";
-
-        if (!empty($ids)) {
-            $baseurl .= (implode('/', $ids) . '/');
-        }
-
-        if ($itemid !== null) {
-            $baseurl .= "$itemid/";
-        }
-
-        if ($options['forcehttps']) {
-            $baseurl = str_replace('http://', 'https://', $baseurl);
-        }
-
-        return str_replace('@@PLUGINFILE@@/', $baseurl, $text);
-    }
-
-    /**
      * Multiple suspend enrolment.
      *
      * @param mixed $username Username.
@@ -4042,41 +3904,6 @@ class auth_plugin_joomdle extends auth_plugin_manual {
         }
 
         return 0;
-    }
-
-    /**
-     * Get display.
-     *
-     * @param mixed $modname Modname.
-     * @param mixed $instance Instance.
-     * @return mixed The result of the operation.
-     */
-    public function get_display($modname, $instance) {
-        global $CFG, $DB;
-
-        switch ($modname) {
-            case 'resource':
-                // Get display options for resource.
-                $params = [$instance];
-                $query = "SELECT display from  {$CFG->prefix}resource where id = ?";
-                $record = $DB->get_record_sql($query, $params);
-
-                $display = $record->display;
-                break;
-            case 'url':
-                // Get display options for url.
-                $params = [$instance];
-                $query = "SELECT display from  {$CFG->prefix}url where id = ?";
-                $record = $DB->get_record_sql($query, $params);
-
-                $display = $record->display;
-                break;
-            default:
-                $display = 0;
-                break;
-        }
-
-        return $display;
     }
 
     /**
@@ -4314,77 +4141,6 @@ class auth_plugin_joomdle extends auth_plugin_manual {
             $certs[] = $user;
         }
         return $certs;
-    }
-
-    /**
-     * Get questionnaire question result radio.
-     *
-     * @param mixed $qid Qid.
-     * @return mixed The result of the operation.
-     */
-    public function get_questionnaire_question_result_radio($qid) {
-        global $CFG, $DB;
-
-        require_once($CFG->dirroot . '/mod/questionnaire/questionnaire.class.php');
-
-        $sql = "SELECT c.id as cid, q.id as qid, q.precise AS precise, q.name, c.content
-            FROM {questionnaire_question} q " .
-            "LEFT JOIN {questionnaire_quest_choice} c ON question_id = q.id " .
-            'WHERE q.id = ? ORDER BY cid ASC';
-        $params = [$qid];
-        if (!($records2 = $DB->get_records_sql($sql, $params))) {
-            $records2 = [];
-        }
-
-        $options = [];
-        foreach ($records2 as $record2) {
-            $option = [];
-            $option['content'] = $record2->content;
-
-            $cid = $record2->cid;
-
-            $sql = "SELECT count(*) as n
-                FROM {questionnaire_resp_single} rm " .
-                'WHERE question_id = ? AND choice_id = ?';
-            $params = [$qid, $cid];
-            if (!($record3 = $DB->get_record_sql($sql, $params))) {
-                $record3 = null;
-            }
-            $option['n'] = $record3->n;
-
-            $options[] = $option;
-        }
-        return $options;
-    }
-
-    /**
-     * Get questionnaire question result essay.
-     *
-     * @param mixed $qid Qid.
-     * @return mixed The result of the operation.
-     */
-    public function get_questionnaire_question_result_essay($qid) {
-        global $CFG, $DB;
-
-        require_once($CFG->dirroot . '/mod/questionnaire/questionnaire.class.php');
-
-        $sql = "SELECT response
-            FROM {questionnaire_response_text} r " .
-            'WHERE question_id = ? ORDER BY id ASC';
-        $params = [$qid];
-        if (!($records2 = $DB->get_records_sql($sql, $params))) {
-            $records2 = [];
-        }
-
-        $options = [];
-        foreach ($records2 as $record2) {
-            $option = [];
-            $option['content'] = $record2->response;
-            $option['n'] = 1;
-
-            $options[] = $option;
-        }
-        return $options;
     }
 
     /**
@@ -4641,77 +4397,6 @@ class auth_plugin_joomdle extends auth_plugin_manual {
     }
 
     /**
-     * Get scorm item track data.
-     *
-     * @param mixed $id Id.
-     * @param mixed $username Username.
-     * @param mixed $item Item.
-     * @return mixed The result of the operation.
-     */
-    public function get_scorm_item_track_data($id, $username, $item) {
-        global $CFG, $DB;
-        $user = get_complete_user_data('username', $username);
-
-        $query = "SELECT
-            value
-            FROM
-            {$CFG->prefix}scorm_scoes_track
-            WHERE
-            userid = ?
-            and scormid = ?
-            and element = ?";
-
-        $params = [$user->id, $id, $item];
-        $record = $DB->get_record_sql($query, $params);
-
-        $data = $record->value;
-
-        return $data;
-    }
-
-    /**
-     * Get scorm track data.
-     *
-     * @param mixed $id Id.
-     * @param mixed $username Username.
-     * @return mixed The result of the operation.
-     */
-    public function get_scorm_track_data($id, $username) {
-        $data = [];
-        $data['start_time'] = $this->get_scorm_item_track_data($id, $username, 'x.start.time');
-        $data['total_time'] = $this->get_scorm_item_track_data($id, $username, 'cmi.core.total_time');
-        $data['lesson_status'] = $this->get_scorm_item_track_data($id, $username, 'cmi.core.lesson_status');
-        $data['score'] = $this->get_scorm_item_track_data($id, $username, 'cmi.core.score.raw');
-
-        return $data;
-    }
-
-    /**
-     * Get scorm data.
-     *
-     * @param mixed $courseid Course id.
-     * @param mixed $username Username.
-     * @return mixed The result of the operation.
-     */
-    public function get_scorm_data($courseid, $username) {
-        $sections = $this->get_course_mods($courseid, $username);
-
-        foreach ($sections as $section) {
-            foreach ($section['mods'] as $mod) {
-                if ($mod['mod'] == 'scorm') {
-                    // Scorm object found, we return its info, as we assume only one scorm object per course.
-                    $cm = get_coursemodule_from_id('scorm', $mod['id']);
-                    $scormtrack = $this->get_scorm_track_data($cm->instance, $username);
-
-                    return ($scormtrack);
-                } else {
-                    continue;
-                }
-            }
-        }
-    }
-
-    /**
      * My badges.
      *
      * @param mixed $username Username.
@@ -4746,57 +4431,6 @@ class auth_plugin_joomdle extends auth_plugin_manual {
         }
 
         return $bs;
-    }
-
-    /**
-     * Get course completion progress.
-     *
-     * @param mixed $id Id.
-     * @param mixed $username Username.
-     * @return mixed The result of the operation.
-     */
-    public function get_course_completion_progress($id, $username) {
-        global $CFG, $DB;
-
-        require_once($CFG->dirroot . '/blocks/completion_progress/lib.php');
-
-        $username = strtolower($username);
-
-        if ($username) {
-            $user = get_complete_user_data('username', $username);
-        }
-
-        $course = $DB->get_record('course', ['id' => $id], '*', MUST_EXIST);
-        $context = context_course::instance($id);
-
-        $conditions = ['blockname' => 'completion_progress', 'parentcontextid' => $context->id];
-        $block = $DB->get_record('block_instances', $conditions);
-
-        if (!$block) {
-            return [];
-        }
-
-        $config = unserialize(base64_decode($block->configdata));
-        $blockcontext = CONTEXT_BLOCK::instance($block->id);
-
-        $activities = block_completion_progress_get_activities($id, $config);
-        $activities = block_completion_progress_filter_visibility($activities, $user->id, $id, []);
-        $submissions = block_completion_progress_student_submissions($id, $user->id);
-        $completions = block_completion_progress_completions($activities, $user->id, $course, $submissions);
-        $es = [];
-        foreach ($activities as $event) {
-            $e = [];
-            $e['name'] = $event['name'];
-            $e['type'] = $event['type'];
-            $e['id'] = $event['id'];
-            $e['link'] = $event['url'];
-            $e['completed'] = $completions[$event['id']];
-            $e['available'] = (int) $event['available'];
-
-            $es[] = $e;
-        }
-
-        return $es;
     }
 
     /**
