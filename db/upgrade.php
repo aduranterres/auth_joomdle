@@ -29,18 +29,10 @@
  * @return bool True when the upgrade is complete.
  */
 function xmldb_auth_joomdle_upgrade($oldversion) {
-    global $DB;
-
     // Refresh the functions associated with the service.
     $joomdleupgrade = new joomdle_upgrade();
     $joomdleupgrade->remove_old_functions();
     $joomdleupgrade->add_new_functions();
-
-    // Change in configuration storage.
-    if ($oldversion < 2008080289) {
-        $joomdleupgrade->change_config_storage();
-        upgrade_plugin_savepoint(true, 2008080289, 'auth', 'joomdle');
-    }
 
     if ($oldversion < 2026071800) {
         // Add new required capabilities.
@@ -161,18 +153,6 @@ class joomdle_upgrade {
                 );
             }
         }
-    }
-
-    /**
-     * Migrates the Joomdle configuration to plugin configuration storage.
-     *
-     * @return void
-     */
-    public function change_config_storage() {
-        global $DB;
-
-        $sql = "UPDATE {config_plugins} SET plugin = REPLACE(plugin, '/', '_') WHERE plugin='auth/joomdle'";
-        $DB->execute($sql);
     }
 
     /**

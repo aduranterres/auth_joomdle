@@ -51,9 +51,17 @@ require_once($CFG->dirroot . '/grade/report/user/lib.php');
  * Joomdle authentication plugin.
  */
 class auth_plugin_joomdle extends auth_plugin_manual {
-
+    /** Teacher role identifier. */
     public const ROLE_TEACHER = 3;
+
+    /** Student role identifier. */
     public const ROLE_STUDENT = 5;
+
+    /** Maximum avatar download size (20 MiB). */
+    private const AVATAR_MAX_SIZE = 20 * 1024 * 1024;
+
+    /** Maximum avatar download time in seconds. */
+    private const AVATAR_TIMEOUT = 10;
 
     /**
      * Constructor.
@@ -450,6 +458,191 @@ class auth_plugin_joomdle extends auth_plugin_manual {
     }
 
     /**
+     * Download an avatar safely to a temporary file.
+     *
+     * @param string $url Avatar URL.
+     * @param string $joomlaurl Configured Joomla URL.
+     * @return string|false Temporary file path, or false when the download is rejected.
+     */
+    private function download_avatar(string $url, string $joomlaurl) {
+        if (!$this->urls_have_same_origin($url, $joomlaurl)) {
+            return false;
+        }
+
+        $connectionmethod = get_config('auth_joomdle', 'connection_method');
+        if ($connectionmethod === 'fgc') {
+            $tmpfile = $this->download_avatar_fgc($url);
+        } else {
+            $tmpfile = $this->download_avatar_curl($url);
+        }
+
+        if (
+            $tmpfile !== false &&
+                (filesize($tmpfile) > self::AVATAR_MAX_SIZE || !$this->is_allowed_avatar_type($tmpfile))
+        ) {
+            unlink($tmpfile);
+            return false;
+        }
+
+        return $tmpfile;
+    }
+
+    /**
+     * Download an avatar with Moodle's cURL client.
+     *
+     * @param string $url Avatar URL.
+     * @return string|false Temporary file path, or false on failure.
+     */
+    private function download_avatar_curl(string $url) {
+        global $CFG;
+
+        $tmpfile = tempnam($CFG->dataroot . '/temp', 'tmp_pic_');
+        if ($tmpfile === false) {
+            return false;
+        }
+
+        $curl = new curl();
+        $result = $curl->download_one($url, null, [
+            'filepath' => $tmpfile,
+            'CURLOPT_CONNECTTIMEOUT' => 5,
+            'CURLOPT_TIMEOUT' => self::AVATAR_TIMEOUT,
+            'CURLOPT_FOLLOWLOCATION' => false,
+            'CURLOPT_MAXREDIRS' => 0,
+            'CURLOPT_MAXFILESIZE' => self::AVATAR_MAX_SIZE,
+        ]);
+
+        $info = $curl->get_info();
+        $httpcode = (int) ($info['http_code'] ?? 0);
+        if (
+            $result !== true || $httpcode < 200 || $httpcode >= 300 ||
+                !is_file($tmpfile)
+        ) {
+            if (file_exists($tmpfile)) {
+                unlink($tmpfile);
+            }
+            return false;
+        }
+
+        return $tmpfile;
+    }
+
+    /**
+     * Download an avatar with file_get_contents.
+     *
+     * @param string $url Avatar URL.
+     * @return string|false Temporary file path, or false on failure.
+     */
+    private function download_avatar_fgc(string $url) {
+        global $CFG;
+
+        $securityhelper = new \core\files\curl_security_helper();
+        if ($securityhelper->url_is_blocked($url)) {
+            return false;
+        }
+
+        $context = stream_context_create([
+            'http' => [
+                'follow_location' => 0,
+                'ignore_errors' => true,
+                'max_redirects' => 0,
+                'timeout' => self::AVATAR_TIMEOUT,
+                'user_agent' => \core_useragent::get_moodlebot_useragent(),
+            ],
+            'ssl' => [
+                'verify_peer' => true,
+                'verify_peer_name' => true,
+            ],
+        ]);
+        $contents = file_get_contents($url, false, $context, 0, self::AVATAR_MAX_SIZE + 1);
+        if (
+            $contents === false || strlen($contents) > self::AVATAR_MAX_SIZE ||
+                !$this->is_successful_http_response($http_response_header ?? [])
+        ) {
+            return false;
+        }
+
+        $tmpfile = tempnam($CFG->dataroot . '/temp', 'tmp_pic_');
+        if ($tmpfile === false) {
+            return false;
+        }
+
+        if (file_put_contents($tmpfile, $contents) !== strlen($contents)) {
+            unlink($tmpfile);
+            return false;
+        }
+
+        return $tmpfile;
+    }
+
+    /**
+     * Check that the response headers contain a successful final HTTP status.
+     *
+     * @param array $headers HTTP response headers.
+     * @return bool
+     */
+    private function is_successful_http_response(array $headers): bool {
+        $httpcode = 0;
+        foreach ($headers as $header) {
+            if (preg_match('#^HTTP/\S+\s+(\d{3})#i', $header, $matches)) {
+                $httpcode = (int) $matches[1];
+            }
+        }
+
+        return $httpcode >= 200 && $httpcode < 300;
+    }
+
+    /**
+     * Check that two HTTP URLs have the same scheme, host and effective port.
+     *
+     * @param string $url URL to check.
+     * @param string $originurl Configured origin URL.
+     * @return bool
+     */
+    private function urls_have_same_origin(string $url, string $originurl): bool {
+        $urlparts = parse_url($url);
+        $originparts = parse_url($originurl);
+
+        if (
+            $urlparts === false || $originparts === false ||
+                empty($urlparts['scheme']) || empty($urlparts['host']) ||
+                empty($originparts['scheme']) || empty($originparts['host'])
+        ) {
+            return false;
+        }
+
+        $scheme = strtolower($urlparts['scheme']);
+        $originscheme = strtolower($originparts['scheme']);
+        if (
+            !in_array($scheme, ['http', 'https'], true) || $scheme !== $originscheme ||
+                strtolower($urlparts['host']) !== strtolower($originparts['host'])
+        ) {
+            return false;
+        }
+
+        $port = $urlparts['port'] ?? ($scheme === 'https' ? 443 : 80);
+        $originport = $originparts['port'] ?? ($originscheme === 'https' ? 443 : 80);
+        return $port === $originport;
+    }
+
+    /**
+     * Check the downloaded avatar's actual MIME type.
+     *
+     * @param string $filepath File path.
+     * @return bool
+     */
+    private function is_allowed_avatar_type(string $filepath): bool {
+        $fileinfo = new finfo(FILEINFO_MIME_TYPE);
+        $mimetype = $fileinfo->file($filepath);
+
+        return in_array($mimetype, [
+            'image/gif',
+            'image/jpeg',
+            'image/png',
+            'image/webp',
+        ], true);
+    }
+
+    /**
      * System check.
      * @return mixed The result of the operation.
      */
@@ -463,6 +656,16 @@ class auth_plugin_joomdle extends auth_plugin_manual {
             $system['joomdle_configured'] = 1;
             $data = $this->call_method("test", [], true);
             $system['test_data'] = $data;
+        }
+
+        $connectionmethod = get_config('auth_joomdle', 'connection_method');
+        $system['curl_blocked'] = 0;
+        if ($connectionmethod == 'curl') {
+            $curl = new curl;
+            $security_helper = $curl->get_security();
+            if ($security_helper->url_is_blocked($joomlaurl)) {
+                $system['curl_blocked'] = 1;
+            }
         }
 
         // Joomdle version.
@@ -1398,11 +1601,11 @@ class auth_plugin_joomdle extends auth_plugin_manual {
         }
         $where = '(' . implode(' OR ', $likes) . ')';
 
-        $teacher_role = self::ROLE_TEACHER;
+        $teacherrole = self::ROLE_TEACHER;
         $query = "SELECT distinct (u.id), u.username, u.firstname, u.lastname
                  FROM {$CFG->prefix}course as c, {$CFG->prefix}role_assignments AS ra,
                 {$CFG->prefix}user AS u, {$CFG->prefix}context AS ct
-                 WHERE c.id = ct.instanceid AND ra.roleid = $teacher_role AND ra.userid = u.id AND ct.id = ra.contextid
+                 WHERE c.id = ct.instanceid AND ra.roleid = $teacherrole AND ra.userid = u.id AND ct.id = ra.contextid
                      AND c.visible=1 and u.suspended=0 AND $where";
 
         $query .= " ORDER BY lastname, firstname";
@@ -1432,11 +1635,11 @@ class auth_plugin_joomdle extends auth_plugin_manual {
 
         $username = strtolower($username);
 
-        $teacher_role = self::ROLE_TEACHER;
+        $teacherrole = self::ROLE_TEACHER;
         $query = " SELECT distinct c.id as remoteid, c.fullname, ca.name as cat_name, ca.id as cat_id
                     FROM {$CFG->prefix}course as c, {$CFG->prefix}role_assignments AS ra,
                     {$CFG->prefix}user AS u, {$CFG->prefix}context AS ct,  {$CFG->prefix}course_categories ca
-                    WHERE c.id = ct.instanceid AND ra.roleid = $teacher_role AND ra.userid = u.id AND
+                    WHERE c.id = ct.instanceid AND ra.roleid = $teacherrole AND ra.userid = u.id AND
                     ct.id = ra.contextid AND ca.id = c.category and u.username = ?";
 
         $params = [$username];
@@ -2194,8 +2397,12 @@ class auth_plugin_joomdle extends auth_plugin_manual {
 
         $newuser->auth = $auth;
         $newuser->username = $username;
-        $newuser->confirmed = $newinfo['confirmed'];
-        $newuser->suspended = $newinfo['suspended'];
+        if ((is_array($newinfo)) && (array_key_exists('confirmed', $newinfo))) {
+            $newuser->confirmed = $newinfo['confirmed'];
+        }
+        if ((is_array($newinfo)) && (array_key_exists('suspended', $newinfo))) {
+            $newuser->suspended = $newinfo['suspended'];
+        }
 
         // Fix for MDL-8480
         // user CFG lang for user if $newuser->lang is empty
@@ -2237,7 +2444,7 @@ class auth_plugin_joomdle extends auth_plugin_manual {
         $conditions = ['username' => $username];
         $user = $DB->get_record('user', $conditions);
         if (!$user) {
-            $user = $this->create_joomdle_user_record($username, "", "joomdle", $userinfo);
+            $user = $this->create_joomdle_user_record($username, "", "joomdle", $newinfo);
 
             // Set first access as now.
             $conditions = ['id' => $user->id];
@@ -2254,20 +2461,28 @@ class auth_plugin_joomdle extends auth_plugin_manual {
 
                 $updatekeys = array_keys($newinfo);
 
+                $authplugin = get_auth_plugin('joomdle');
+                $customfields = $authplugin->get_custom_user_profile_fields();
                 foreach ($updatekeys as $key) {
-                    if (isset($newinfo[$key])) {
-                        $value = $newinfo[$key];
-                    } else {
-                        $value = '';
-                    }
-
-                    if (isset($user->{$key}) && $user->{$key} != $value) { // Only update if it's changed.
-                        // Don't update password, because we don't have it clear, and hash algo is different in Joomla.
-                        if ($key == 'password') {
-                            continue;
+                    if (in_array($key, $authplugin->userfields) || (in_array($key, $customfields))) {
+                        if (isset($newinfo[$key])) {
+                            $value = $newinfo[$key];
+                        } else {
+                            $value = '';
                         }
-                        $needsupdate = true;
-                        $updateuser->$key = $value;
+
+                        if (isset($user->{$key}) && $user->{$key} != $value) { // Only update if it's changed.
+                            // Don't update password, because we don't have it clear, and hash algo is different in Joomla.
+                            if ($key == 'password') {
+                                continue;
+                            }
+                            // Protect ID and auth method change.
+                            if (($key == 'id') || ($key == 'auth')) {
+                                continue;
+                            }
+                            $needsupdate = true;
+                            $updateuser->$key = $value;
+                        }
                     }
                 }
             }
@@ -2288,17 +2503,20 @@ class auth_plugin_joomdle extends auth_plugin_manual {
                     $picurl = $newinfo['pic_url'];
                 }
 
-                $pic = $this->get_file($picurl);
-                if ($pic) {
-                    $tmpfile = $CFG->dataroot . '/temp/' . 'tmp_pic';
-                    file_put_contents($tmpfile, $pic);
+                $tmpfile = $this->download_avatar($picurl, $joomlaurl);
+                if ($tmpfile !== false) {
+                    try {
+                        $user = get_complete_user_data('username', $username); // We need this to get user id.
+                        $context = context_user::instance($user->id);
+                        $rev = (int) process_new_icon($context, 'user', 'icon', 0, $tmpfile);
 
-                    $user = get_complete_user_data('username', $username); // We need this to get user id.
-                    $context = context_user::instance($user->id);
-                    $rev = (int) process_new_icon($context, 'user', 'icon', 0, $tmpfile);
-
-                    $conditions = ['id' => $user->id];
-                    $DB->set_field('user', 'picture', $rev, $conditions);
+                        $conditions = ['id' => $user->id];
+                        $DB->set_field('user', 'picture', $rev, $conditions);
+                    } finally {
+                        if (file_exists($tmpfile)) {
+                            unlink($tmpfile);
+                        }
+                    }
                 }
             }
         }

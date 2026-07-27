@@ -665,6 +665,8 @@ class joomdle_helpers_external extends external_api {
         }
         self::validate_context($context);
 
+        require_capability('moodle/course:view', $context);
+
         $auth = new  auth_plugin_joomdle();
         $return = $auth->get_upcoming_events($params['id']);
 
@@ -1635,6 +1637,7 @@ class joomdle_helpers_external extends external_api {
                 'joomdle_configured' => new external_value(PARAM_INT, 'joomdle configured'),
                 'test_data' => new external_value(PARAM_RAW, 'test data', VALUE_OPTIONAL),
                 'release' => new external_value(PARAM_TEXT, 'Joomdle release'),
+                'curl_blocked' => new external_value(PARAM_INT, 'curl blocked'),
             ]
         );
     }
