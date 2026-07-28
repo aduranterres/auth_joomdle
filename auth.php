@@ -661,9 +661,9 @@ class auth_plugin_joomdle extends auth_plugin_manual {
         $connectionmethod = get_config('auth_joomdle', 'connection_method');
         $system['curl_blocked'] = 0;
         if ($connectionmethod == 'curl') {
-            $curl = new curl;
-            $security_helper = $curl->get_security();
-            if ($security_helper->url_is_blocked($joomlaurl)) {
+            $curl = new curl();
+            $securityhelper = $curl->get_security();
+            if ($securityhelper->url_is_blocked($joomlaurl)) {
                 $system['curl_blocked'] = 1;
             }
         }
