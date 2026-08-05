@@ -75,7 +75,7 @@ final class simplecertificate_generator implements generator_interface {
         $simplecertificate->set_instance($certificate);
 
         $completion = new \completion_info($course);
-        if (!$canmanage && $completion->is_enabled($cm) && $certificate->requiredtime) {
+        if ($completion->is_enabled($cm) && $certificate->requiredtime) {
             if ($simplecertificate->get_course_time($user) < $certificate->requiredtime) {
                 $a = (object) ['requiredtime' => $certificate->requiredtime];
                 throw new \moodle_exception('requiredtimenotmet', 'simplecertificate', '', $a);
@@ -94,11 +94,6 @@ final class simplecertificate_generator implements generator_interface {
         $content = $file->get_content();
         $filename = $file->get_filename();
         $mimetype = $file->get_mimetype() ?: 'application/pdf';
-
-        // Managers receive a temporary issue in this module; match its normal download cleanup.
-        if ($canmanage) {
-            $file->delete();
-        }
 
         if (!is_string($content) || !str_starts_with($content, '%PDF-')) {
             throw new \moodle_exception('cannotgeneratecertificate', 'auth_joomdle');
