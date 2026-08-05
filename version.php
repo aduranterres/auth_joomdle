@@ -24,8 +24,8 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->version  = 2026072600;
+$plugin->version  = 2026080401;
 $plugin->requires = 2024100712;
 $plugin->maturity = MATURITY_STABLE;
-$plugin->release = "3.1.1";
+$plugin->release = "3.1.2";
 $plugin->component = 'auth_joomdle';

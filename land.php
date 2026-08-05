@@ -134,6 +134,7 @@ $lang      = optional_param('lang', '', PARAM_TEXT);
 $topic      = optional_param('topic', '', PARAM_INT);
 $section      = optional_param('section', '', PARAM_INT);
 $redirect      = optional_param('redirect', '', PARAM_TEXT); // Redirect moodle param.
+$loginip = optional_param('loginip', '', PARAM_TEXT);
 
 $auth = new auth_plugin_joomdle();
 
@@ -168,8 +169,13 @@ if ((!$user) || ($user->auth == 'joomdle')) {
             $user = get_complete_user_data('username', $username);
 
             if (!$user->suspended) {
+                $extra = [];
+                if ($loginip) {
+                    $extra['loginip'] = $loginip;
+                }
+
                 // Log the user in.
-                complete_user_login($user);
+                $auth->complete_user_login($user, $extra);
 
                 // Call user_authenticated_hook.
                 $authsenabled = get_enabled_auth_plugins();

@@ -138,6 +138,7 @@ class joomdle_moodle_config {
         assign_capability('moodle/course:viewhiddencourses', CAP_ALLOW, $roleid, $context->id, true);
         assign_capability('moodle/category:viewcourselist', CAP_ALLOW, $roleid, $context->id, true);
         assign_capability('moodle/course:viewparticipants', CAP_ALLOW, $roleid, $context->id, true);
+        assign_capability('moodle/site:viewparticipants', CAP_ALLOW, $roleid, $context->id, true);
         assign_capability('moodle/grade:viewall', CAP_ALLOW, $roleid, $context->id, true);
         assign_capability('moodle/site:configview', CAP_ALLOW, $roleid, $context->id, true);
         assign_capability('moodle/category:viewhiddencategories', CAP_ALLOW, $roleid, $context->id, true);

@@ -864,8 +864,6 @@ class auth_plugin_joomdle extends auth_plugin_manual {
                 // Self-enrolment.
                 if ($instance->enrol == 'self') {
                     $c['self_enrolment'] = 1;
-                } else {
-                    $c['self_enrolment'] = 0;
                 }
 
                 // Guest access.
@@ -1010,7 +1008,6 @@ class auth_plugin_joomdle extends auth_plugin_manual {
             }
         }
 
-        $i = 0;
         $now = time();
         $options['noclean'] = true;
         $cursos = [];
@@ -1341,6 +1338,7 @@ class auth_plugin_joomdle extends auth_plugin_manual {
         $notfound['enroled'] = 0;
         $notfound['in_enrol_date'] = false;
         $notfound['guest'] = 0;
+        $notfound['visible'] = 0;
         $notfound['summary_files'] = [];
 
         $username = strtolower($username);
@@ -1357,6 +1355,7 @@ class auth_plugin_joomdle extends auth_plugin_manual {
             co.summary,
             co.startdate,
             co.enddate,
+            co.visible,
             co.lang
             FROM
             {$CFG->prefix}course_categories ca
@@ -1640,7 +1639,7 @@ class auth_plugin_joomdle extends auth_plugin_manual {
                     FROM {$CFG->prefix}course as c, {$CFG->prefix}role_assignments AS ra,
                     {$CFG->prefix}user AS u, {$CFG->prefix}context AS ct,  {$CFG->prefix}course_categories ca
                     WHERE c.id = ct.instanceid AND ra.roleid = $teacherrole AND ra.userid = u.id AND
-                    ct.id = ra.contextid AND ca.id = c.category and u.username = ?";
+                    ct.id = ra.contextid AND ca.id = c.category and u.username = ? and c.visible=1";
 
         $params = [$username];
         $records = $DB->get_records_sql($query, $params);
@@ -2130,7 +2129,7 @@ class auth_plugin_joomdle extends auth_plugin_manual {
 
         $gs = [];
         $true = true;
-        [$courses, $group, $user] = calendar_set_filters($filtercourse, $true);
+        [$courses, $group, $userid] = calendar_set_filters($filtercourse, $true);
         $courses = [$id => $id];
 
         if ($username != '') {
@@ -2162,7 +2161,7 @@ class auth_plugin_joomdle extends auth_plugin_manual {
         $display->tstart = $usermidnighttoday;
         $display->tend = usergetmidnight($display->tstart + DAYSECS * $display->range + 3 * HOURSECS) - 1;
 
-        $events = calendar_get_legacy_events($display->tstart, $display->tend, [$user->id], $gs, $courses);
+        $events = calendar_get_legacy_events($display->tstart, $display->tend, [$userid], $gs, $courses);
 
         $data = [];
         foreach ($events as $r) {
@@ -4763,5 +4762,141 @@ class auth_plugin_joomdle extends auth_plugin_manual {
         fclose($f);
         unlink($file);
         return true;
+    }
+
+    /**
+     * This is a copy of the function in the Moodle core.
+     * It sets the IP address of the user logging in through Joomla using redirectless SSO.
+     * Without it, the Joomla server IP address is used instead.
+     *
+     * Call to complete the user login process after authenticate_user_login()
+     * has succeeded. It will setup the $USER variable and other required bits
+     * and pieces.
+     *
+     * NOTE:
+     * - It will NOT log anything -- up to the caller to decide what to log.
+     * - this function does not set any cookies any more!
+     *
+     * @param stdClass $user
+     * @param array $extrauserinfo
+     * @return stdClass A {@link $USER} object - BC only, do not use
+     */
+    function complete_user_login($user, array $extrauserinfo = []) {
+        global $CFG, $DB, $USER, $SESSION;
+
+        \core\session\manager::login_user($user);
+
+        // Reload preferences from DB.
+        unset($USER->preference);
+        check_user_preferences_loaded($USER);
+
+        // Update login times.
+        update_user_login_times();
+
+        // Extra session prefs init.
+        set_login_session_preferences();
+
+        // Trigger login event.
+        $event = \core\event\user_loggedin::create(
+            array(
+                'userid' => $USER->id,
+                'objectid' => $USER->id,
+                'other' => [
+                    'username' => $USER->username,
+                    'extrauserinfo' => $extrauserinfo
+                ]
+            )
+        );
+        $event->trigger();
+
+        // Allow plugins to callback as soon possible after user has completed login.
+        \core\di::get(\core\hook\manager::class)->dispatch(new \core_user\hook\after_login_completed());
+
+        // Check if the user is using a new browser or session (a new MoodleSession cookie is set in that case).
+        // If the user is accessing from the same IP, ignore everything (most of the time will be a new session in the same browser).
+        // Skip Web Service requests, CLI scripts, AJAX scripts, and request from the mobile app itself.
+        if ((array_key_exists('loginip', $extrauserinfo)) && ($extrauserinfo['loginip'])) {
+            $loginip = $extrauserinfo['loginip'];
+
+            // update_user_login_times() sets lastip using getremoteaddr().
+            // If we have a different IP coming from a redirect-less SSO login, update the user record.
+            $u = new \stdClass();
+            $SESSION->lastip = $loginip;
+            $USER->lastip = $u->lastip = $loginip;
+            $u->id = $user->id;
+            $DB->update_record('user', $u);
+        } else {
+            $loginip = getremoteaddr();
+        }
+
+        $isnewip = isset($SESSION->userpreviousip) && $SESSION->userpreviousip != $loginip;
+        $isvalidenv = (!WS_SERVER && !CLI_SCRIPT && !NO_MOODLE_COOKIES) || PHPUNIT_TEST;
+
+        if (!empty($SESSION->isnewsessioncookie) && $isnewip && $isvalidenv && !\core_useragent::is_moodle_app()) {
+
+            $logintime = time();
+            $ismoodleapp = false;
+            $useragent = \core_useragent::get_user_agent_string();
+
+            $sitepreferences = get_message_output_default_preferences();
+            // Check if new login notification is disabled at system level.
+            $newlogindisabled = $sitepreferences->moodle_newlogin_disable ?? 0;
+            // Check if message providers (web, email, mobile) are enabled at system level.
+            $msgproviderenabled = isset($sitepreferences->message_provider_moodle_newlogin_enabled);
+            // Get message providers enabled for a user.
+            $userpreferences = get_user_preferences('message_provider_moodle_newlogin_enabled');
+            // Check if notification processor plugins (web, email, mobile) are enabled at system level.
+            $msgprocessorsready = !empty(get_message_processors(true));
+            // If new login notification is enabled at system level then go for other conditions check.
+            $newloginenabled = $newlogindisabled ? 0 : ($userpreferences != 'none' && $msgproviderenabled);
+
+            if ($newloginenabled && $msgprocessorsready) {
+                // Schedule adhoc task to send a login notification to the user.
+                $task = new \core\task\send_login_notifications();
+                $task->set_userid($USER->id);
+                $task->set_custom_data(compact('ismoodleapp', 'useragent', 'loginip', 'logintime'));
+                $task->set_component('core');
+                \core\task\manager::queue_adhoc_task($task);
+            }
+        }
+
+        // Queue migrating the messaging data, if we need to.
+        if (!get_user_preferences('core_message_migrate_data', false, $USER->id)) {
+            // Check if there are any legacy messages to migrate.
+            if (\core_message\helper::legacy_messages_exist($USER->id)) {
+                \core_message\task\migrate_message_data::queue_task($USER->id);
+            } else {
+                set_user_preference('core_message_migrate_data', true, $USER->id);
+            }
+        }
+
+        if (isguestuser()) {
+            // No need to continue when user is THE guest.
+            return $USER;
+        }
+
+        if (CLI_SCRIPT) {
+            // We can redirect to password change URL only in browser.
+            return $USER;
+        }
+
+        // Select password change url.
+        $userauth = get_auth_plugin($USER->auth);
+
+        // Check whether the user should be changing password.
+        if (get_user_preferences('auth_forcepasswordchange', false)) {
+            if ($userauth->can_change_password()) {
+                if ($changeurl = $userauth->change_password_url()) {
+                    redirect($changeurl);
+                } else {
+                    require_once($CFG->dirroot . '/login/lib.php');
+                    $SESSION->wantsurl = core_login_get_return_url();
+                    redirect($CFG->wwwroot . '/login/change_password.php');
+                }
+            } else {
+                throw new \moodle_exception('nopasswordchangeforced', 'auth');
+            }
+        }
+        return $USER;
     }
 }

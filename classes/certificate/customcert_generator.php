@@ -53,23 +53,6 @@ final class customcert_generator implements generator_interface {
             throw new \required_capability_exception($context, 'mod/customcert:view', 'nopermissions', '');
         }
 
-        if (!has_capability('mod/customcert:view', $context, $user)) {
-            throw new \required_capability_exception($context, 'mod/customcert:view', 'nopermissions', '');
-        }
-
-        if (!has_capability('mod/customcert:receiveissue', $context, $user)) {
-            throw new \required_capability_exception($context, 'mod/customcert:receiveissue', 'nopermissions', '');
-        }
-
-        $canmanage = has_capability('mod/customcert:manage', $context, $user);
-        if (
-            $customcert->requiredtime && !$canmanage &&
-            \mod_customcert\certificate::get_course_time($course->id, $user->id) < ($customcert->requiredtime * 60)
-        ) {
-            $a = (object) ['requiredtime' => $customcert->requiredtime];
-            throw new \moodle_exception('requiredtimenotmet', 'customcert', '', $a);
-        }
-
         if (
             !$DB->record_exists('customcert_issues', [
             'userid' => $user->id,

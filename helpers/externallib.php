@@ -353,6 +353,7 @@ class joomdle_helpers_external extends external_api {
                 'self_enrolment' => new external_value(PARAM_INT, 'self enrollable'),
                 'enroled' => new external_value(PARAM_INT, 'user enroled'),
                 'in_enrol_date' => new external_value(PARAM_BOOL, 'in enrol date'),
+                'visible' => new external_value(PARAM_INT, 'visible'),
                 'guest' => new external_value(PARAM_INT, 'guest access'),
                 'summary_files' => new external_multiple_structure(
                     new external_single_structure(

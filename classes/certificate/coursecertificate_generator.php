@@ -43,28 +43,10 @@ final class coursecertificate_generator implements generator_interface {
         $certificate = $DB->get_record('coursecertificate', ['id' => $cm->instance], '*', MUST_EXIST);
         $context = \context_module::instance($cm->id);
 
-        if (!has_capability('mod/coursecertificate:view', $context, $user)) {
-            throw new \required_capability_exception(
-                $context,
-                'mod/coursecertificate:view',
-                'nopermissions',
-                ''
-            );
-        }
-
         if (!\core_availability\info_module::is_user_visible($cm, $user->id)) {
             throw new \required_capability_exception(
                 $context,
                 'mod/coursecertificate:view',
-                'nopermissions',
-                ''
-            );
-        }
-
-        if (!has_capability('mod/coursecertificate:receive', $context, $user)) {
-            throw new \required_capability_exception(
-                $context,
-                'mod/coursecertificate:receive',
                 'nopermissions',
                 ''
             );

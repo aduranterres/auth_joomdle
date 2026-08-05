@@ -67,17 +67,8 @@ final class simplecertificate_generator implements generator_interface {
         $certificate = $DB->get_record('simplecertificate', ['id' => $cm->instance], '*', MUST_EXIST);
         $context = \context_module::instance($cm->id);
 
-        if (!has_capability('mod/simplecertificate:view', $context, $user)) {
-            throw new \required_capability_exception($context, 'mod/simplecertificate:view', 'nopermissions', '');
-        }
-
         if (!\core_availability\info_module::is_user_visible($cm, $user->id)) {
             throw new \moodle_exception('cantissue', 'simplecertificate');
-        }
-
-        $canmanage = has_capability('mod/simplecertificate:manage', $context, $user);
-        if ((int) $certificate->delivery === 3 && !$canmanage) {
-            throw new \moodle_exception('nodelivering', 'simplecertificate');
         }
 
         $simplecertificate = new \simplecertificate($context, $cm, $course);
