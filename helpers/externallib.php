@@ -232,6 +232,7 @@ class joomdle_helpers_external extends external_api {
         $context = context_system::instance();
         self::validate_context($context);
         require_capability('moodle/course:view', $context);
+        require_capability('moodle/course:viewhiddencourses', $context);
 
         $auth = new  auth_plugin_joomdle();
         $id = $auth->list_courses(
@@ -2163,7 +2164,7 @@ class joomdle_helpers_external extends external_api {
      * @return external_description The return structure.
      */
     public static function suspend_enrolment_returns() {
-        return new  external_value(PARAM_INT, 'user created');
+        return new  external_value(PARAM_INT, 'enrolment suspended');
     }
 
     /**

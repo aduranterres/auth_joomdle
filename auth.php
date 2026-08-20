@@ -1888,7 +1888,7 @@ class auth_plugin_joomdle extends auth_plugin_manual {
             }
             $gradegrade->load_grade_item();
 
-            $e['letter'] = grade_format_gradevalue($total['finalgrade'], $gradegrade->grade_item, true, GRADE_DISPLAY_TYPE_LETTER);
+            $e['letter'] = grade_format_gradevalue($e['finalgrade'], $gradegrade->grade_item, true, GRADE_DISPLAY_TYPE_LETTER);
 
             // Get items.
             $query = "select *
@@ -2918,7 +2918,7 @@ class auth_plugin_joomdle extends auth_plugin_manual {
      * @param mixed $username Username.
      * @param mixed $courses Courses.
      * @param mixed $roleid Roleid.
-     * @return mixed The result of the operation.
+     * @return int The result of the operation.
      */
     public function multiple_enrol_to_course_and_group($username, $courses, $roleid = 0) {
         global $CFG, $DB;
@@ -2927,6 +2927,10 @@ class auth_plugin_joomdle extends auth_plugin_manual {
 
         $conditions = ['username' => $username];
         $user = $DB->get_record('user', $conditions);
+
+        if (!$user) {
+            return 0;
+        }
 
         foreach ($courses as $course) {
             $conditions = ['id' => $course['id']];
@@ -2941,6 +2945,8 @@ class auth_plugin_joomdle extends auth_plugin_manual {
             // Group.
             groups_add_member($course['group_id'], $user->id);
         }
+
+        return 1;
     }
 
     /**
@@ -3658,7 +3664,7 @@ class auth_plugin_joomdle extends auth_plugin_manual {
 
         $data = [];
         foreach ($events as $event) {
-            $e['name'] = $event->name . $whereclause;
+            $e['name'] = $event->name;
             $e['timestart'] = $event->timestart;
             $e['courseid'] = $event->courseid;
 
@@ -3771,6 +3777,7 @@ class auth_plugin_joomdle extends auth_plugin_manual {
         $instances = enrol_get_instances($courseid, true);
 
         $i = 0;
+        $m = [];
         foreach ($instances as $method) {
             $m[$i]['id'] = $method->id;
             $m[$i]['enrol'] = $method->enrol;
@@ -3820,7 +3827,7 @@ class auth_plugin_joomdle extends auth_plugin_manual {
      *
      * @param mixed $username Username.
      * @param mixed $courseid Course id.
-     * @return mixed The result of the operation.
+     * @return int The result of the operation.
      */
     public function suspend_enrolment($username, $courseid) {
         global $CFG, $DB;
@@ -3831,25 +3838,27 @@ class auth_plugin_joomdle extends auth_plugin_manual {
         $enrol = $DB->get_record('enrol', $conditions);
 
         if (!$enrol) {
-            return;
+            return 0;
         }
 
         $conditions = ['username' => $username];
         $user = $DB->get_record('user', $conditions);
 
         if (!$user) {
-            return;
+            return 0;
         }
 
         $conditions = ['enrolid' => $enrol->id, 'userid' => $user->id];
         $ue = $DB->get_record('user_enrolments', $conditions);
 
         if (!$ue) {
-            return;
+            return 0;
         }
 
         $ue->status = 1; // Suspended.
         $DB->update_record('user_enrolments', $ue);
+
+        return 1;
     }
 
 
@@ -3892,7 +3901,7 @@ class auth_plugin_joomdle extends auth_plugin_manual {
      *
      * @param mixed $username Username.
      * @param mixed $courseid Course id.
-     * @return mixed The result of the operation.
+     * @return int The result of the operation.
      */
     public function unenrol_user($username, $courseid) {
         global $CFG, $DB;
@@ -3903,14 +3912,14 @@ class auth_plugin_joomdle extends auth_plugin_manual {
         $enrol = $DB->get_record('enrol', $conditions);
 
         if (!$enrol) {
-            return;
+            return 0;
         }
 
         $conditions = ['username' => $username];
         $user = $DB->get_record('user', $conditions);
 
         if (!$user) {
-            return;
+            return 0;
         }
 
         $conditions = ['enrolid' => $enrol->id, 'userid' => $user->id];
@@ -3922,14 +3931,14 @@ class auth_plugin_joomdle extends auth_plugin_manual {
             $enrol = $DB->get_record('enrol', $conditions);
 
             if (!$enrol) {
-                return;
+                return 0;
             }
 
             $conditions = ['enrolid' => $enrol->id, 'userid' => $user->id];
             $ue = $DB->get_record('user_enrolments', $conditions);
 
             if (!$ue) {
-                return;
+                return 0;
             }
         }
 
@@ -3938,6 +3947,8 @@ class auth_plugin_joomdle extends auth_plugin_manual {
         $plugin = enrol_get_plugin($instance->enrol);
 
         $plugin->unenrol_user($instance, $ue->userid);
+
+        return 1;
     }
 
     /**
