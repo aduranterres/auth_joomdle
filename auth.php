@@ -104,6 +104,7 @@ class auth_plugin_joomdle extends auth_plugin_manual {
         $user = $DB->get_record('user', $conditions);
 
         /* Create user in Joomla */
+        $userinfo = [];
         $userinfo['username'] = $user->username;
         $userinfo['password'] = $passwordclear;
         $userinfo['password2'] = $passwordclear;
@@ -4792,7 +4793,7 @@ class auth_plugin_joomdle extends auth_plugin_manual {
      * @param array $extrauserinfo
      * @return stdClass A {@link $USER} object - BC only, do not use
      */
-    function complete_user_login($user, array $extrauserinfo = []) {
+    public function complete_user_login($user, array $extrauserinfo = []) {
         global $CFG, $DB, $USER, $SESSION;
 
         \core\session\manager::login_user($user);
@@ -4809,14 +4810,14 @@ class auth_plugin_joomdle extends auth_plugin_manual {
 
         // Trigger login event.
         $event = \core\event\user_loggedin::create(
-            array(
+            [
                 'userid' => $USER->id,
                 'objectid' => $USER->id,
                 'other' => [
                     'username' => $USER->username,
-                    'extrauserinfo' => $extrauserinfo
-                ]
-            )
+                    'extrauserinfo' => $extrauserinfo,
+                ],
+            ]
         );
         $event->trigger();
 
@@ -4824,12 +4825,12 @@ class auth_plugin_joomdle extends auth_plugin_manual {
         \core\di::get(\core\hook\manager::class)->dispatch(new \core_user\hook\after_login_completed());
 
         // Check if the user is using a new browser or session (a new MoodleSession cookie is set in that case).
-        // If the user is accessing from the same IP, ignore everything (most of the time will be a new session in the same browser).
+        // If the user is accessing from the same IP, ignore it (most of the time will be a new session in the same browser).
         // Skip Web Service requests, CLI scripts, AJAX scripts, and request from the mobile app itself.
         if ((array_key_exists('loginip', $extrauserinfo)) && ($extrauserinfo['loginip'])) {
             $loginip = $extrauserinfo['loginip'];
 
-            // update_user_login_times() sets lastip using getremoteaddr().
+            // Function update_user_login_times() sets lastip using getremoteaddr().
             // If we have a different IP coming from a redirect-less SSO login, update the user record.
             $u = new \stdClass();
             $SESSION->lastip = $loginip;
@@ -4844,7 +4845,6 @@ class auth_plugin_joomdle extends auth_plugin_manual {
         $isvalidenv = (!WS_SERVER && !CLI_SCRIPT && !NO_MOODLE_COOKIES) || PHPUNIT_TEST;
 
         if (!empty($SESSION->isnewsessioncookie) && $isnewip && $isvalidenv && !\core_useragent::is_moodle_app()) {
-
             $logintime = time();
             $ismoodleapp = false;
             $useragent = \core_useragent::get_user_agent_string();
