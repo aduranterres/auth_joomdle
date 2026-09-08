@@ -4641,6 +4641,11 @@ class auth_plugin_joomdle extends auth_plugin_manual {
             return;
         }
 
+        // Skip this in token based logins, etc.
+        if (session_id() === null) {
+            return;
+        }
+
         /* Login from password change, don't log in to Joomla */
         if (
             (array_key_exists('password', $_POST))  && (array_key_exists('newpassword1', $_POST))
