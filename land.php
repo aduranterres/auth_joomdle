@@ -168,7 +168,7 @@ if ((!$user) || ($user->auth == 'joomdle')) {
             }
             $user = get_complete_user_data('username', $username);
 
-            if (!$user->suspended) {
+            if ((!$user->suspended) && ($user->confirmed) && (!$user->deleted)) {
                 $extra = [];
                 if ($loginip) {
                     $extra['loginip'] = $loginip;

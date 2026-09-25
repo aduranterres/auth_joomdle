@@ -112,7 +112,7 @@ class auth_plugin_joomdle extends auth_plugin_manual {
         $userinfo['firstname'] = $user->firstname;
         $userinfo['lastname'] = $user->lastname;
         $userinfo['email'] = $user->email;
-        $userinfo['block'] = 0;
+        $userinfo['block'] = 1;
         $userinfo['confirmed'] = 0;
 
         // Manually create user in Joomla, because we only have the password in cleartext here.
@@ -758,6 +758,25 @@ class auth_plugin_joomdle extends auth_plugin_manual {
                 $urlitem = [];
                 $urlitem['url'] = $url;
                 $record['summary_files'][] = $urlitem;
+            }
+
+            $record['timestart'] = 0;
+            $record['timeend'] = 0;
+
+            $conditions = array ('courseid' => $course->id);
+            $enrols = $DB->get_records('enrol', $conditions);
+
+            foreach ($enrols as $enrol) {
+                if ($enrol) {
+                    $conditions = array ('enrolid' => $enrol->id, 'userid' => $user->id);
+                    $ue = $DB->get_record('user_enrolments', $conditions);
+
+                    if ($ue) {
+                        // Add enrolment info.
+                        $record['timestart'] = $ue->timestart;
+                        $record['timeend'] = $ue->timeend;
+                    }
+                }
             }
 
             $courses[$i] = $record;
@@ -2485,9 +2504,32 @@ class auth_plugin_joomdle extends auth_plugin_manual {
                         }
                     }
                 }
+
+                if ((is_array($newinfo)) && (array_key_exists('confirmed', $newinfo))) {
+                    $updateuser->confirmed = $newinfo['confirmed'];
+                } else {
+                    $updateuser->confirmed = 0;
+                }
+
+                if ($user->confirmed != $updateuser->confirmed) {
+                    $needsupdate = true;
+                }
+
+                if ((is_array($newinfo)) && (array_key_exists('suspended', $newinfo))) {
+                    $updateuser->suspended = $newinfo['suspended'];
+                } else {
+                    $updateuser->suspended = 0;
+                }
+
+                if ($user->suspended != $updateuser->suspended) {
+                    $needsupdate = true;
+                }
             }
             if ($needsupdate) {
                 require_once($CFG->dirroot . '/user/lib.php');
+                if ($user->suspended != 1 && $updateuser->suspended == 1) {
+                    \core\session\manager::destroy_user_sessions($user->id);
+                }
                 user_update_user($updateuser, false, false);
             }
         }
@@ -3487,6 +3529,7 @@ class auth_plugin_joomdle extends auth_plugin_manual {
         $u['firstnamephonetic'] = $user->firstnamephonetic;
         $u['middlename'] = $user->middlename;
         $u['alternatename'] = $user->alternatename;
+        $u['block'] = $user->suspended;
 
         $id = $user->id;
         $usercontext = context_user::instance($id);
@@ -4147,7 +4190,7 @@ class auth_plugin_joomdle extends auth_plugin_manual {
         $params1 = [$userid];
         $params = array_merge($params1, $params2);
 
-        $certs = $DB->get_records_sql("SELECT  c.name, c.id, ci.timecreated as certdate
+        $certs = $DB->get_records_sql("SELECT  c.name, c.id, ci.timecreated as certdate, ci.customcertid
                 FROM {$CFG->prefix}customcert c
                 LEFT JOIN {$CFG->prefix}customcert_issues ci ON c.id = ci.customcertid
                 WHERE ci.userid = ?
@@ -4160,6 +4203,7 @@ class auth_plugin_joomdle extends auth_plugin_manual {
             $certificate['id'] = $coursemodule->id;
             $certificate['name'] = $cert->name;
             $certificate['date'] = $cert->certdate;
+            $certificate['certid'] = $cert->customcertid;
 
             $c[] = $certificate;
         }

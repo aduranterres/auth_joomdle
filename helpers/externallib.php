@@ -275,6 +275,8 @@ class joomdle_helpers_external extends external_api {
                     'category' => new external_value(PARAM_INT, 'course category id'),
                     'cat_name' => new external_value(PARAM_TEXT, 'course category name'),
                     'can_unenrol' => new external_value(PARAM_INT, 'user can self unenrol'),
+                    'timestart' => new external_value(PARAM_INT, 'enrolment start date'),
+                    'timeend' => new external_value(PARAM_INT, 'enrolment end date'),
                     'summary_files' => new external_multiple_structure(
                         new external_single_structure(
                             [
@@ -1362,6 +1364,7 @@ class joomdle_helpers_external extends external_api {
                 'firstnamephonetic' => new external_value(PARAM_TEXT, 'firstnamephonetic', VALUE_OPTIONAL),
                 'middlename' => new external_value(PARAM_TEXT, 'middlename', VALUE_OPTIONAL),
                 'alternatename' => new external_value(PARAM_TEXT, 'alternatename', VALUE_OPTIONAL),
+                'block' => new external_value(PARAM_INT, 'block', VALUE_OPTIONAL),
                 'custom_fields' => new external_multiple_structure(
                     new external_single_structure(
                         [
@@ -2219,6 +2222,7 @@ class joomdle_helpers_external extends external_api {
                     'name' => new external_value(PARAM_TEXT, 'name'),
                     'id' => new external_value(PARAM_INT, 'id'),
                     'code' => new external_value(PARAM_TEXT, 'code', VALUE_OPTIONAL),
+                    'certid' => new external_value(PARAM_INT, 'id'),
                 ]
             )
         );
