@@ -763,12 +763,12 @@ class auth_plugin_joomdle extends auth_plugin_manual {
             $record['timestart'] = 0;
             $record['timeend'] = 0;
 
-            $conditions = array ('courseid' => $course->id);
+            $conditions = ['courseid' => $course->id];
             $enrols = $DB->get_records('enrol', $conditions);
 
             foreach ($enrols as $enrol) {
                 if ($enrol) {
-                    $conditions = array ('enrolid' => $enrol->id, 'userid' => $user->id);
+                    $conditions = ['enrolid' => $enrol->id, 'userid' => $user->id];
                     $ue = $DB->get_record('user_enrolments', $conditions);
 
                     if ($ue) {
